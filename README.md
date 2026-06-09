@@ -1,64 +1,21 @@
-# 🎓 EduSearch — Aplikasi Pencari Kursus Online
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+</div>
 
-> Tugas Final Lab Mobile 2026 | H071241082 | Tema: Pendidikan
+# Run and deploy your AI Studio app
 
-## Deskripsi
+This contains everything you need to run your app locally.
 
-EduSearch adalah aplikasi Android yang membantu pengguna menemukan dan menyimpan kursus online dari Udemy. Aplikasi ini mengambil data kursus secara real-time melalui API dan menyimpan kursus favorit secara lokal menggunakan SQLite, sehingga tetap bisa diakses saat offline.
+View your app in AI Studio: https://ai.studio/apps/26dd6f1f-7e73-4ba3-8e09-5fe708063e4a
 
-## Fitur Utama
+## Run Locally
 
-- 🔍 **Browse Kursus** — Menampilkan daftar kursus dari Udemy API (programming)
-- 🔖 **Simpan Kursus** — Simpan kursus favorit ke SQLite untuk akses offline
-- 🌐 **Buka di Udemy** — Langsung buka halaman kursus di browser
-- 🌙 **Dark / Light Mode** — Tema gelap dan terang menggunakan DayNight
-- 🔄 **Tombol Retry** — Refresh data saat tidak ada koneksi internet
-- 📴 **Mode Offline** — Tampilkan data tersimpan ketika tidak ada jaringan
+**Prerequisites:**  [Android Studio](https://developer.android.com/studio)
 
-## Spesifikasi Teknis
 
-| Komponen | Implementasi |
-|---|---|
-| Activity | SplashActivity (Launcher), MainActivity, DetailActivity |
-| Intent | MainActivity → DetailActivity dengan data kursus |
-| RecyclerView | Daftar kursus di HomeFragment & SavedFragment |
-| Fragment | HomeFragment, SavedFragment, SettingsFragment |
-| Navigation | Navigation Component + BottomNavigationView |
-| Background Thread | Executor + Handler (DB operations & API response) |
-| Networking | Retrofit + OkHttp (Udemy API via RapidAPI) |
-| Local Storage | SQLite (CourseDbHelper) untuk kursus tersimpan |
-| SharedPreferences | Menyimpan preferensi dark mode |
-| Dark/Light Theme | DayNight theme (MaterialComponents.DayNight) |
-
-## API
-
-Menggunakan **Udemy Paid Courses For Free API** dari RapidAPI:
-- Host: `udemy-paid-courses-for-free-api.p.rapidapi.com`
-- Endpoint: `GET /rapidapi/courses/`
-
-## Cara Menjalankan
-
-1. Clone repo ini
-2. Buka dengan Android Studio
-3. Sync Gradle
-4. Run di emulator/device (min SDK 24)
-
-## Screenshot
-
-> (Tambahkan screenshot setelah APK selesai di-build)
-
-## Struktur Project
-
-```
-EduSearch/
-├── activity/       # SplashActivity, MainActivity, DetailActivity
-├── fragment/       # HomeFragment, SavedFragment, SettingsFragment
-├── adapter/        # CourseAdapter (RecyclerView)
-├── model/          # Course, CourseResponse, Instructor
-├── network/        # ApiClient, UdemyApiService (Retrofit)
-└── db/             # CourseDbHelper, SavedCourse (SQLite)
-```
-
----
-
-**Mahasiswa:** Ryan Firmansyah | **NIM:** H071241082 | **Unhas 2026**
+1. Open Android Studio
+2. Select **Open** and choose the directory containing this project
+3. Allow Android Studio to fix any incompatibilities as it imports the project.
+4. Create a file named `.env` in the project directory and set `GEMINI_API_KEY` in that file to your Gemini API key (see `.env.example` for an example)
+5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
+6. Run the app on an emulator or physical device

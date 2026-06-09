@@ -1,0 +1,6 @@
+{
+  "name": "EduSearch",
+  "description": "Aplikasi informasi beasiswa dan kursus online terlengkap dengan integrasi SQLite/Room untuk bookmark offline dan asisten Gemini AI untuk membantu pencarian pendidikan terbaik.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
