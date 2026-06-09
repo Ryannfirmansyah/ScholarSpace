@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/homeFragment"
+        android:icon="@drawable/ic_home"
+        android:title="Beranda"/>
+    <item android:id="@+id/savedFragment"
+        android:icon="@drawable/ic_bookmark_border"
+        android:title="Tersimpan"/>
+    <item android:id="@+id/settingsFragment"
+        android:icon="@drawable/ic_settings"
+        android:title="Pengaturan"/>
+</menu>
