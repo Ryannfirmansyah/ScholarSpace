@@ -124,6 +124,7 @@ fun EduSearchApp(viewModel: EduSearchViewModel) {
                             AppScreen.DASHBOARD -> DashboardScreen(viewModel = viewModel)
                             AppScreen.SAVED -> SavedScreen(viewModel = viewModel)
                             AppScreen.ASSISTANT -> AssistantScreen(viewModel = viewModel)
+                            AppScreen.NEWS -> NewsScreen(viewModel = viewModel)
                             AppScreen.SETTINGS -> SettingsScreen(viewModel = viewModel)
                         }
                     }
@@ -206,6 +207,12 @@ fun EduSearchBottomBar(
             icon = { Icon(Icons.Default.Chat, contentDescription = "Asisten AI") },
             label = { Text("AI Asisten", fontWeight = FontWeight.Bold, fontSize = 11.sp) },
             modifier = Modifier.testTag("nav_ai_button")
+        )
+        NavigationBarItem(
+            selected = currentScreen == AppScreen.NEWS,
+            onClick = { onScreenSelected(AppScreen.NEWS) },
+            icon = { Icon(Icons.Default.Newspaper, contentDescription = "Berita") },
+            label = { Text("Berita", fontWeight = FontWeight.Bold, fontSize = 11.sp) }
         )
         NavigationBarItem(
             selected = currentScreen == AppScreen.SETTINGS,

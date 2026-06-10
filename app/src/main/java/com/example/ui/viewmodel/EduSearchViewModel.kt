@@ -8,6 +8,8 @@ import com.example.data.model.Course
 import com.example.data.model.Scholarship
 import com.example.data.network.Content
 import com.example.data.network.GeminiClient
+import com.example.data.network.NewsApiClient
+import com.example.data.network.NewsArticle
 import com.example.data.network.Part
 import com.example.data.repository.EduSearchRepository
 import kotlinx.coroutines.flow.*
@@ -15,7 +17,7 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 enum class AppScreen {
-    DASHBOARD, SAVED, ASSISTANT, SETTINGS
+    DASHBOARD, SAVED, ASSISTANT, NEWS, SETTINGS
 }
 
 enum class ItemTab {
@@ -33,63 +35,56 @@ enum class MessageSender {
     USER, AI
 }
 
+sealed class NewsState {
+    object Loading : NewsState()
+    data class Success(val articles: List<NewsArticle>) : NewsState()
+    data class Error(val message: String) : NewsState()
+}
+
 class EduSearchViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database = EduSearchDatabase.getDatabase(application)
     private val repository = EduSearchRepository(database.eduSearchDao())
 
-    // --- Navigation and Active Tabs State ---
     val currentScreen = MutableStateFlow(AppScreen.DASHBOARD)
     val currentItemTab = MutableStateFlow(ItemTab.SCHOLARSHIPS)
-
-    // --- Search & Filtering States ---
     val searchQuery = MutableStateFlow("")
-    val selectedScholarshipCategory = MutableStateFlow("Semua") // "Semua", "Dalam Negeri", "Luar Negeri", "Pemerintah", "Swasta"
-    val selectedCourseCategory = MutableStateFlow("Semua") // "Semua", "Teknologi", "Desain", "Bisnis", "Bahasa"
-
-    // --- Selected Detail States ---
+    val selectedScholarshipCategory = MutableStateFlow("Semua")
+    val selectedCourseCategory = MutableStateFlow("Semua")
     val activeDetailScholarship = MutableStateFlow<Scholarship?>(null)
     val activeDetailCourse = MutableStateFlow<Course?>(null)
-
-    // --- Dialogs (Form Adding) State ---
     val showAddScholarshipDialog = MutableStateFlow(false)
     val showAddCourseDialog = MutableStateFlow(false)
+    val isDarkMode = MutableStateFlow(false)
 
-    // --- Core Database Flows Enriched with UI Categories ---
+    // --- News State (Retrofit API) ---
+    val newsState = MutableStateFlow<NewsState>(NewsState.Loading)
+
     val scholarships: StateFlow<List<Scholarship>> = combine(
-        repository.allScholarshipsFlow,
-        searchQuery,
-        selectedScholarshipCategory
+        repository.allScholarshipsFlow, searchQuery, selectedScholarshipCategory
     ) { list, query, category ->
         list.filter { item ->
             val matchesQuery = item.title.contains(query, ignoreCase = true) ||
                     item.provider.contains(query, ignoreCase = true) ||
                     item.description.contains(query, ignoreCase = true)
-            
             val matchesCategory = category == "Semua" || item.category.equals(category, ignoreCase = true)
-            
             matchesQuery && matchesCategory
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val courses: StateFlow<List<Course>> = combine(
-        repository.allCoursesFlow,
-        searchQuery,
-        selectedCourseCategory
+        repository.allCoursesFlow, searchQuery, selectedCourseCategory
     ) { list, query, category ->
         list.filter { item ->
             val matchesQuery = item.title.contains(query, ignoreCase = true) ||
                     item.instructor.contains(query, ignoreCase = true) ||
                     item.platform.contains(query, ignoreCase = true) ||
                     item.description.contains(query, ignoreCase = true)
-            
             val matchesCategory = category == "Semua" || item.category.equals(category, ignoreCase = true)
-            
             matchesQuery && matchesCategory
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // --- Saved Favorites Flows ---
     val savedScholarships: StateFlow<List<Scholarship>> = repository.allScholarshipsFlow.map { list ->
         list.filter { it.isFavorite }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -98,37 +93,38 @@ class EduSearchViewModel(application: Application) : AndroidViewModel(applicatio
         list.filter { it.isFavorite }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // --- AI Assistant Chat State ---
     val chatMessages = MutableStateFlow<List<ChatMessage>>(
-        listOf(
-            ChatMessage(
-                sender = MessageSender.AI,
-                text = "Halo! Saya EduSearch AI, asisten akademik pintar Anda. Ada beasiswa atau kelas pelatihan gratis yang ingin Anda tanyakan hari ini?"
-            )
-        )
+        listOf(ChatMessage(sender = MessageSender.AI,
+            text = "Halo! Saya EduSearch AI, asisten akademik pintar Anda. Ada beasiswa atau kelas pelatihan gratis yang ingin Anda tanyakan hari ini?"))
     )
     val aiIsLoading = MutableStateFlow(false)
 
-    // --- Dark Mode State ---
-    val isDarkMode = MutableStateFlow(false)
+    init {
+        fetchNews()
+    }
 
-    // --- Toggle Favorite Handlers ---
+    // --- Fetch News dari API (Retrofit) ---
+    fun fetchNews() {
+        viewModelScope.launch {
+            newsState.value = NewsState.Loading
+            val result = NewsApiClient.getEducationNews()
+            newsState.value = result.fold(
+                onSuccess = { articles -> NewsState.Success(articles) },
+                onFailure = { e -> NewsState.Error(e.message ?: "Gagal memuat berita") }
+            )
+        }
+    }
+
     fun toggleFavoriteScholarship(scholarship: Scholarship) {
         viewModelScope.launch {
             if (scholarship.isFavorite) {
-                // If it is a custom scholarship, we delete it from DB entirely. 
-                // If preloaded, we delete from DB so it's no longer favorited.
                 repository.removeScholarship(scholarship.id)
-                // If the detail is active, update it
-                if (activeDetailScholarship.value?.id == scholarship.id) {
+                if (activeDetailScholarship.value?.id == scholarship.id)
                     activeDetailScholarship.value = activeDetailScholarship.value?.copy(isFavorite = false)
-                }
             } else {
-                val favorited = scholarship.copy(isFavorite = true)
-                repository.saveScholarship(favorited)
-                if (activeDetailScholarship.value?.id == scholarship.id) {
+                repository.saveScholarship(scholarship.copy(isFavorite = true))
+                if (activeDetailScholarship.value?.id == scholarship.id)
                     activeDetailScholarship.value = activeDetailScholarship.value?.copy(isFavorite = true)
-                }
             }
         }
     }
@@ -137,134 +133,74 @@ class EduSearchViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             if (course.isFavorite) {
                 repository.removeCourse(course.id)
-                if (activeDetailCourse.value?.id == course.id) {
+                if (activeDetailCourse.value?.id == course.id)
                     activeDetailCourse.value = activeDetailCourse.value?.copy(isFavorite = false)
-                }
             } else {
-                val favorited = course.copy(isFavorite = true)
-                repository.saveCourse(favorited)
-                if (activeDetailCourse.value?.id == course.id) {
+                repository.saveCourse(course.copy(isFavorite = true))
+                if (activeDetailCourse.value?.id == course.id)
                     activeDetailCourse.value = activeDetailCourse.value?.copy(isFavorite = true)
-                }
             }
         }
     }
 
-    // --- Delete Custom Listings ---
     fun deleteCustomScholarship(id: String) {
         viewModelScope.launch {
             repository.removeScholarship(id)
-            if (activeDetailScholarship.value?.id == id) {
-                activeDetailScholarship.value = null
-            }
+            if (activeDetailScholarship.value?.id == id) activeDetailScholarship.value = null
         }
     }
 
     fun deleteCustomCourse(id: String) {
         viewModelScope.launch {
             repository.removeCourse(id)
-            if (activeDetailCourse.value?.id == id) {
-                activeDetailCourse.value = null
-            }
+            if (activeDetailCourse.value?.id == id) activeDetailCourse.value = null
         }
     }
 
-    // --- Manual Addition Handlers ---
-    fun addNewScholarship(
-        title: String,
-        provider: String,
-        benefits: String,
-        description: String,
-        deadline: String,
-        category: String,
-        requirements: String,
-        link: String
-    ) {
+    fun addNewScholarship(title: String, provider: String, benefits: String, description: String,
+                          deadline: String, category: String, requirements: String, link: String) {
         viewModelScope.launch {
-            val customSchol = Scholarship(
-                id = "custom_schol_${UUID.randomUUID()}",
-                title = title,
-                provider = provider,
-                benefits = benefits,
-                description = description,
-                deadline = deadline,
-                status = "Buka",
+            repository.saveScholarship(Scholarship(
+                id = "custom_schol_${UUID.randomUUID()}", title = title, provider = provider,
+                benefits = benefits, description = description, deadline = deadline, status = "Buka",
                 link = if (link.startsWith("http")) link else "https://$link",
-                category = category,
-                requirements = requirements,
-                isCustom = true,
-                isFavorite = true
-            )
-            repository.saveScholarship(customSchol)
+                category = category, requirements = requirements, isCustom = true, isFavorite = true
+            ))
             showAddScholarshipDialog.value = false
         }
     }
 
-    fun addNewCourse(
-        title: String,
-        instructor: String,
-        platform: String,
-        price: String,
-        rating: Double,
-        category: String,
-        description: String,
-        link: String
-    ) {
+    fun addNewCourse(title: String, instructor: String, platform: String, price: String,
+                     rating: Double, category: String, description: String, link: String) {
         viewModelScope.launch {
-            val customCourse = Course(
-                id = "custom_course_${UUID.randomUUID()}",
-                title = title,
-                instructor = instructor,
-                platform = platform,
-                price = price,
-                rating = rating,
-                category = category,
-                description = description,
-                link = if (link.startsWith("http")) link else "https://$link",
-                isCustom = true,
-                isFavorite = true
-            )
-            repository.saveCourse(customCourse)
+            repository.saveCourse(Course(
+                id = "custom_course_${UUID.randomUUID()}", title = title, instructor = instructor,
+                platform = platform, price = price, rating = rating, category = category,
+                description = description, link = if (link.startsWith("http")) link else "https://$link",
+                isCustom = true, isFavorite = true
+            ))
             showAddCourseDialog.value = false
         }
     }
 
-    // --- Gemini AI Interaction ---
     fun sendChatMessage(text: String) {
         if (text.isBlank() || aiIsLoading.value) return
-
-        val userMsg = ChatMessage(sender = MessageSender.USER, text = text)
-        chatMessages.value = chatMessages.value + userMsg
+        chatMessages.value = chatMessages.value + ChatMessage(sender = MessageSender.USER, text = text)
         aiIsLoading.value = true
-
         viewModelScope.launch {
-            // Prepare history for Gemini API
             val history = chatMessages.value.dropLast(1).map {
-                val role = if (it.sender == MessageSender.USER) "user" else "model"
                 Content(parts = listOf(Part(text = it.text)))
             }
-
             val reply = GeminiClient.askGemini(text, history)
-            
-            chatMessages.value = chatMessages.value + ChatMessage(
-                sender = MessageSender.AI,
-                text = reply
-            )
+            chatMessages.value = chatMessages.value + ChatMessage(sender = MessageSender.AI, text = reply)
             aiIsLoading.value = false
         }
     }
 
     fun clearChat() {
-        chatMessages.value = listOf(
-            ChatMessage(
-                sender = MessageSender.AI,
-                text = "Riwayat percakapan telah dibersihkan. Ada hal lain yang bisa saya bantu terkait beasiswa, tes TOEFL/IELTS, atau kursus pemrograman?"
-            )
-        )
+        chatMessages.value = listOf(ChatMessage(sender = MessageSender.AI,
+            text = "Riwayat percakapan telah dibersihkan. Ada hal lain yang bisa saya bantu?"))
     }
 
-    // --- Settings / Options ---
-    fun toggleDarkMode() {
-        isDarkMode.value = !isDarkMode.value
-    }
+    fun toggleDarkMode() { isDarkMode.value = !isDarkMode.value }
 }
