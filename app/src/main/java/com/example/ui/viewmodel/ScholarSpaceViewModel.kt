@@ -1,9 +1,9 @@
-package com.example.ui.viewmodel
+﻿package com.example.ui.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.database.EduSearchDatabase
+import com.example.data.database.ScholarSpaceDatabase
 import com.example.data.model.Course
 import com.example.data.model.Scholarship
 import com.example.data.network.Content
@@ -11,7 +11,7 @@ import com.example.data.network.GeminiClient
 import com.example.data.network.NewsApiClient
 import com.example.data.network.NewsArticle
 import com.example.data.network.Part
-import com.example.data.repository.EduSearchRepository
+import com.example.data.repository.ScholarSpaceRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -41,10 +41,10 @@ sealed class NewsState {
     data class Error(val message: String) : NewsState()
 }
 
-class EduSearchViewModel(application: Application) : AndroidViewModel(application) {
+class ScholarSpaceViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val database = EduSearchDatabase.getDatabase(application)
-    private val repository = EduSearchRepository(database.eduSearchDao())
+    private val database = ScholarSpaceDatabase.getDatabase(application)
+    private val repository = ScholarSpaceRepository(database.ScholarSpaceDao())
 
     val currentScreen = MutableStateFlow(AppScreen.DASHBOARD)
     val currentItemTab = MutableStateFlow(ItemTab.SCHOLARSHIPS)
@@ -95,7 +95,7 @@ class EduSearchViewModel(application: Application) : AndroidViewModel(applicatio
 
     val chatMessages = MutableStateFlow<List<ChatMessage>>(
         listOf(ChatMessage(sender = MessageSender.AI,
-            text = "Halo! Saya EduSearch AI, asisten akademik pintar Anda. Ada beasiswa atau kelas pelatihan gratis yang ingin Anda tanyakan hari ini?"))
+            text = "Halo! Saya ScholarSpace AI, asisten akademik pintar Anda. Ada beasiswa atau kelas pelatihan gratis yang ingin Anda tanyakan hari ini?"))
     )
     val aiIsLoading = MutableStateFlow(false)
 

@@ -41,7 +41,7 @@ import com.example.data.model.Course
 import com.example.data.model.Scholarship
 import com.example.ui.theme.ColorClosed
 import com.example.ui.theme.ColorOpen
-import com.example.ui.theme.EduSearchTheme
+import com.example.ui.theme.ScholarSpaceTheme
 import com.example.ui.theme.GoldStar
 import com.example.ui.viewmodel.*
 import kotlinx.coroutines.launch
@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
-            EduSearchTheme(darkTheme = isDarkMode) {
+            ScholarSpaceTheme(darkTheme = isDarkMode) {
                 EduSearchApp(viewModel = viewModel)
             }
         }

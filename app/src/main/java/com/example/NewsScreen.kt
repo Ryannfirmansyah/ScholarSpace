@@ -1,4 +1,4 @@
-package com.example
+﻿package com.example
 
 import android.content.Intent
 import android.net.Uri
@@ -24,11 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.network.NewsArticle
-import com.example.ui.viewmodel.EduSearchViewModel
+import com.example.ui.viewmodel.ScholarSpaceViewModel
 import com.example.ui.viewmodel.NewsState
 
 @Composable
-fun NewsScreen(viewModel: EduSearchViewModel) {
+fun NewsScreen(viewModel: ScholarSpaceViewModel) {
     val newsState by viewModel.newsState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 

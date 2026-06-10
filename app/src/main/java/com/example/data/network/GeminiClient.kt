@@ -1,4 +1,4 @@
-package com.example.data.network
+﻿package com.example.data.network
 
 import com.example.BuildConfig
 import com.squareup.moshi.Json
@@ -95,7 +95,7 @@ object GeminiClient {
         val fullContents = conversationHistory + currentContent
 
         val systemInstructionText = """
-            Anda adalah EduSearch AI, asisten spesialis pendidikan tinggi dan pelatihan kursus online untuk mahasiswa di Indonesia. 
+            Anda adalah ScholarSpace AI, asisten spesialis pendidikan tinggi dan pelatihan kursus online untuk mahasiswa di Indonesia. 
             Jawab semua pertanyaan terkait beasiswa (seperti LPDP, Beasiswa Unggulan, Erasmus, MEXT) dan rekomendasi kursus pemrograman/desain/bisnis (seperti Udemy, Coursera, Dicoding) dengan santun, informatif, dan terstruktur menggunakan bahasa Indonesia yang baik dan profesional.
             
             Jika ditanya tentang instansi atau kampus di Indonesia, berikan saran yang sangat membantu. 
@@ -150,7 +150,7 @@ object GeminiClient {
                         "Pelajari wireframing, color theory, dan buatlah portofolio di Dribbble/Behance."
             }
             else -> {
-                "**[EduSearch AI Mode Pintar]** Terima kasih atas pertanyaannya! Beasiswa dan Kursus adalah jembatan emas menuju karier impian Anda.\n\n" +
+                "**[ScholarSpace AI Mode Pintar]** Terima kasih atas pertanyaannya! Beasiswa dan Kursus adalah jembatan emas menuju karier impian Anda.\n\n" +
                         "Anda bisa bertanya secara spesifik tentang:\n" +
                         "1. Persyaratan beasiswa luar negeri (Chevening, Erasmus, MEXT)\n" +
                         "2. Cara mendaftar LPDP dan Beasiswa Unggulan\n" +

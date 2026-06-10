@@ -1,6 +1,6 @@
-package com.example.data.repository
+﻿package com.example.data.repository
 
-import com.example.data.database.EduSearchDao
+import com.example.data.database.ScholarSpaceDao
 import com.example.data.database.SavedCourseEntity
 import com.example.data.database.SavedScholarshipEntity
 import com.example.data.model.Course
@@ -8,7 +8,7 @@ import com.example.data.model.Scholarship
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class EduSearchRepository(private val dao: EduSearchDao) {
+class ScholarSpaceRepository(private val dao: ScholarSpaceDao) {
 
     // --- Preloaded Data Lists ---
     val preloadedScholarships = listOf(
@@ -101,7 +101,7 @@ class EduSearchRepository(private val dao: EduSearchDao) {
         Course(
             id = "pre_course_2",
             title = "Android Jetpack Compose Masterclass",
-            instructor = "EduSearch Developer Team",
+            instructor = "ScholarSpace Developer Team",
             platform = "Udemy",
             price = "Rp 129.000",
             rating = 4.9,

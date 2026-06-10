@@ -1,10 +1,10 @@
-package com.example.data.database
+﻿package com.example.data.database
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface EduSearchDao {
+interface ScholarSpaceDao {
     
     // --- Scholarships ---
     @Query("SELECT * FROM saved_scholarships ORDER BY savedAt DESC")

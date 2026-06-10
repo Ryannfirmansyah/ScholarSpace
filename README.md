@@ -1,21 +1,72 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# 🎓 ScholarSpace — Aplikasi Pencari Beasiswa & Kursus Online
 
-# Run and deploy your AI Studio app
+> Tugas Final Lab Mobile 2026 | H071241082 | Ryan Firmansyah | Tema: Pendidikan
 
-This contains everything you need to run your app locally.
+## Deskripsi
 
-View your app in AI Studio: https://ai.studio/apps/26dd6f1f-7e73-4ba3-8e09-5fe708063e4a
+ScholarSpace adalah aplikasi Android berbasis Kotlin + Jetpack Compose yang membantu mahasiswa menemukan beasiswa dan kursus online terbaik. Aplikasi ini mengambil berita pendidikan secara real-time via API Retrofit, menyimpan data favorit secara lokal menggunakan Room Database, dan dilengkapi asisten AI berbasis Gemini untuk menjawab pertanyaan seputar beasiswa dan kursus.
 
-## Run Locally
+## Fitur Utama
 
-**Prerequisites:**  [Android Studio](https://developer.android.com/studio)
+- 🎓 **Eksplor Beasiswa** — Daftar beasiswa lengkap (LPDP, Chevening, Erasmus, MEXT, dll) dengan filter kategori
+- 📚 **Eksplor Kursus** — Kursus online terakreditasi (Dicoding, Udemy, Coursera) dengan filter kategori
+- 🔖 **Simpan Favorit** — Bookmark beasiswa & kursus ke Room Database untuk akses offline
+- 🤖 **AI Asisten** — Chat dengan ScholarSpace AI (Gemini) untuk tanya jawab seputar beasiswa
+- 📰 **Berita Pendidikan** — Ambil berita pendidikan terkini via Retrofit + RapidAPI, dengan tombol retry saat offline
+- 🌙 **Dark / Light Mode** — Toggle tema gelap dan terang
+- ➕ **Tambah Manual** — Form input untuk menambah beasiswa/kursus kustom
 
+## Spesifikasi Teknis
 
-1. Open Android Studio
-2. Select **Open** and choose the directory containing this project
-3. Allow Android Studio to fix any incompatibilities as it imports the project.
-4. Create a file named `.env` in the project directory and set `GEMINI_API_KEY` in that file to your Gemini API key (see `.env.example` for an example)
-5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
-6. Run the app on an emulator or physical device
+| Komponen | Implementasi |
+|---|---|
+| Activity | SplashActivity (Launcher) + MainActivity |
+| Intent | Navigasi antar screen + buka URL berita di browser |
+| RecyclerView | LazyColumn Jetpack Compose |
+| Fragment & Navigation | 5 screen: Eksplor, Simpan, AI Asisten, Berita, Profil |
+| Background Thread | Kotlin Coroutines (`viewModelScope.launch`) |
+| Networking | Retrofit + OkHttp — NewsApiClient (RapidAPI) + GeminiClient |
+| Tombol Refresh | Tombol "Coba Lagi" di NewsScreen saat gagal ambil data |
+| Local Storage | Room Database (SQLite) untuk simpan beasiswa & kursus favorit |
+| Offline Fallback | Data tersimpan tetap tampil saat tidak ada jaringan |
+| Dark/Light Theme | Material3 DayNight via `AppCompatDelegate` |
+
+## API yang Digunakan
+
+- **News API** (RapidAPI) — Berita pendidikan terkini
+- **Gemini AI API** (Google AI Studio) — Asisten AI ScholarSpace
+
+## Cara Menjalankan
+
+1. Clone repo ini
+2. Buka dengan Android Studio (versi terbaru)
+3. Sync Gradle
+4. (Opsional) Masukkan Gemini API Key di file `.env`:
+   ```
+   GEMINI_API_KEY=your_api_key_here
+   ```
+5. Run di emulator atau device fisik (min SDK 24)
+
+## Struktur Project
+
+```
+ScholarSpace/
+├── data/
+│   ├── database/     # ScholarSpaceDatabase, ScholarSpaceDao, Entities (Room)
+│   ├── model/        # Course, Scholarship
+│   ├── network/      # GeminiClient, NewsApiClient (Retrofit)
+│   └── repository/   # ScholarSpaceRepository
+├── ui/
+│   ├── theme/        # ScholarSpaceTheme, Color, Typography
+│   └── viewmodel/    # ScholarSpaceViewModel
+├── MainActivity.kt   # Entry point + semua Composable screen
+└── NewsScreen.kt     # Screen berita pendidikan (Retrofit API)
+```
+
+## Screenshot
+
+> (Tambahkan screenshot setelah APK selesai di-build)
+
+---
+
+**Mahasiswa:** Ryan Firmansyah | **NIM:** H071241082 | **Program Studi:** Sistem Informasi | **Universitas Hasanuddin 2026**
