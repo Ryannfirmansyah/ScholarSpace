@@ -1,7 +1,7 @@
-package com.example.data.model
+﻿package com.ryan.scholarspace.data.model
 
-import com.example.data.database.SavedCourseEntity
-import com.example.data.database.SavedScholarshipEntity
+import com.ryan.scholarspace.data.database.SavedCourseEntity
+import com.ryan.scholarspace.data.database.SavedScholarshipEntity
 
 data class Scholarship(
     val id: String,

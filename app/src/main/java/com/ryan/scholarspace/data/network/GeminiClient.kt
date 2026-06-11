@@ -1,6 +1,6 @@
-﻿package com.example.data.network
+﻿package com.ryan.scholarspace.data.network
 
-import com.example.BuildConfig
+import com.ryan.scholarspace.BuildConfig
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi

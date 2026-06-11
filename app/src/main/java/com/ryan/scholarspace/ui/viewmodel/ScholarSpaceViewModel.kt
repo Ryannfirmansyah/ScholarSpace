@@ -1,17 +1,17 @@
-﻿package com.example.ui.viewmodel
+﻿package com.ryan.scholarspace.ui.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.database.ScholarSpaceDatabase
-import com.example.data.model.Course
-import com.example.data.model.Scholarship
-import com.example.data.network.Content
-import com.example.data.network.GeminiClient
-import com.example.data.network.NewsApiClient
-import com.example.data.network.NewsArticle
-import com.example.data.network.Part
-import com.example.data.repository.ScholarSpaceRepository
+import com.ryan.scholarspace.data.database.ScholarSpaceDatabase
+import com.ryan.scholarspace.data.model.Course
+import com.ryan.scholarspace.data.model.Scholarship
+import com.ryan.scholarspace.data.network.Content
+import com.ryan.scholarspace.data.network.GeminiClient
+import com.ryan.scholarspace.data.network.NewsApiClient
+import com.ryan.scholarspace.data.network.NewsArticle
+import com.ryan.scholarspace.data.network.Part
+import com.ryan.scholarspace.data.repository.ScholarSpaceRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.UUID

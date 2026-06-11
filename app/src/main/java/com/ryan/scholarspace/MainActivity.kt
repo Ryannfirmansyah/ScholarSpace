@@ -1,4 +1,4 @@
-package com.example
+﻿package com.ryan.scholarspace
 
 import android.content.Intent
 import android.net.Uri
@@ -37,13 +37,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.model.Course
-import com.example.data.model.Scholarship
-import com.example.ui.theme.ColorClosed
-import com.example.ui.theme.ColorOpen
-import com.example.ui.theme.ScholarSpaceTheme
-import com.example.ui.theme.GoldStar
-import com.example.ui.viewmodel.*
+import com.ryan.scholarspace.data.model.Course
+import com.ryan.scholarspace.data.model.Scholarship
+import com.ryan.scholarspace.ui.theme.ColorClosed
+import com.ryan.scholarspace.ui.theme.ColorOpen
+import com.ryan.scholarspace.ui.theme.ScholarSpaceTheme
+import com.ryan.scholarspace.ui.theme.GoldStar
+import com.ryan.scholarspace.ui.viewmodel.*
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -289,51 +289,62 @@ fun DashboardScreen(viewModel: EduSearchViewModel) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Hero Header Slate Accent - Modern App Bar (M3 Standard - Professional Polish)
-        Row(
+        // Gradient Hero Header
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.secondary
+                        )
+                    )
+                )
+                .padding(start = 24.dp, end = 24.dp, top = 22.dp, bottom = 20.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "SELAMAT DATANG",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = 1.sp
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "EduSearch 🎓",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Temukan peluang beasiswa global dan kursus online terakreditasi.",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), CircleShape),
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "RF",
-                    fontWeight = FontWeight.Black,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "SELAMAT DATANG",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.75f),
+                        letterSpacing = 1.5.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "ScholarSpace",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Temukan beasiswa global dan kursus terakreditasi.",
+                        fontSize = 12.sp,
+                        color = Color.White.copy(alpha = 0.75f)
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Box(
+                    modifier = Modifier
+                        .size(46.dp)
+                        .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                        .border(1.5.dp, Color.White.copy(alpha = 0.5f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "RF",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 15.sp,
+                        color = Color.White
+                    )
+                }
             }
         }
 
@@ -573,23 +584,32 @@ fun SavedScreen(viewModel: EduSearchViewModel) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Favorites Section Title header
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 2.dp
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 18.dp)) {
-                Text(
-                    text = "Materi Tersimpan 🔖",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+        // Gradient Header - Saved Screen
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.secondary,
+                            MaterialTheme.colorScheme.primary
+                        )
+                    )
                 )
+                .padding(horizontal = 24.dp, vertical = 20.dp)
+        ) {
+            Column {
                 Text(
-                    text = "Akses modul beasiswa dan kursus yang disimpan secara offline.",
+                    text = "Materi Tersimpan",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Beasiswa dan kursus yang kamu simpan ada di sini.",
                     fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = Color.White.copy(alpha = 0.75f)
                 )
             }
         }
@@ -709,35 +729,42 @@ fun AssistantScreen(viewModel: EduSearchViewModel) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // AI Header bar with clear history
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 3.dp
+        // Gradient AI Header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.secondary
+                        )
+                    )
+                )
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp),
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Asisten EduSearch AI 🤖",
+                        text = "ScholarSpace AI",
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
                     )
                     Text(
-                        text = "Tanyakan kriteria beasiswa, tips motivation letter atau saran kursus.",
+                        text = "Tanyakan beasiswa, motivation letter, atau saran kursus.",
                         fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                        color = Color.White.copy(alpha = 0.75f)
                     )
                 }
 
                 IconButton(
                     onClick = { viewModel.clearChat() },
                     colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
+                        contentColor = Color.White.copy(alpha = 0.9f)
                     ),
                     modifier = Modifier.testTag("btn_clear_chat")
                 ) {
@@ -786,7 +813,7 @@ fun AssistantScreen(viewModel: EduSearchViewModel) {
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("EduSearch AI berpikir...", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("ScholarSpace AI sedang berpikir...", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -815,7 +842,7 @@ fun AssistantScreen(viewModel: EduSearchViewModel) {
                         .weight(1f)
                         .padding(horizontal = 4.dp)
                         .testTag("ai_chat_input"),
-                    placeholder = { Text("Tanyakan sesuatu ke EduSearch AI...", fontSize = 13.sp) },
+                    placeholder = { Text("Tanyakan sesuatu ke ScholarSpace AI...", fontSize = 13.sp) },
                     singleLine = false,
                     maxLines = 4,
                     shape = RoundedCornerShape(24.dp),
@@ -930,51 +957,72 @@ fun SettingsScreen(viewModel: EduSearchViewModel) {
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
-        // Section Title Header
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 2.dp
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 18.dp)) {
-                Text(
-                    text = "Profil & Pengaturan ⚙️",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+        // Gradient Header - Settings Screen
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.secondary
+                        )
+                    )
                 )
+                .padding(horizontal = 24.dp, vertical = 20.dp)
+        ) {
+            Column {
                 Text(
-                    text = "Periksa detail identitas pengembang dan konfigurasikan tema.",
+                    text = "Profil & Pengaturan",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Identitas pengembang dan konfigurasi tema aplikasi.",
                     fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = Color.White.copy(alpha = 0.75f)
                 )
             }
         }
 
-        // Student Bio Card Identity (Unhas 2026)
+        // Student Bio Card with Gradient Header
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
+            // Gradient card header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.secondary
+                            )
+                        ),
+                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                    )
+                    .padding(20.dp)
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
-                            .size(60.dp)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape),
+                            .size(64.dp)
+                            .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                            .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "RF",
                             fontWeight = FontWeight.Black,
-                            fontSize = 20.sp,
+                            fontSize = 22.sp,
                             color = Color.White
                         )
                     }
@@ -986,37 +1034,56 @@ fun SettingsScreen(viewModel: EduSearchViewModel) {
                             text = "Ryan Firmansyah",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = Color.White
                         )
                         Text(
                             text = "NIM. H071241082",
                             fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                            color = Color.White.copy(alpha = 0.85f),
                             fontWeight = FontWeight.Medium
                         )
                         Text(
                             text = "Universitas Hasanuddin (Unhas)",
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            color = Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(18.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                Spacer(modifier = Modifier.height(12.dp))
-
+            // Stats section
+            Column(modifier = Modifier.padding(20.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("Angkatan", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f))
-                        Text("2024 (Aktif 2026)", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Angkatan",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                        Text(
+                            "2024 (Aktif 2026)",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("Tugas / Program", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f))
-                        Text("Tugas Final Lab Mobile", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Tugas / Program",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                        Text(
+                            "Final Lab Mobile",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }
@@ -1103,7 +1170,7 @@ fun SettingsScreen(viewModel: EduSearchViewModel) {
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Aplikasi EduSearch mengintegrasikan pustaka Room Database di atas mesin relasional SQLite asli Android.\n\n" +
+                    text = "Aplikasi ScholarSpace mengintegrasikan pustaka Room Database di atas mesin relasional SQLite asli Android.\n\n" +
                             "💡 Penjelasan Alur:\n" +
                             "- Sesi Beranda memuat beasiswa & kursus berstandar tinggi.\n" +
                             "- Mengetuk tombol Bookmark (Favorit) akan memasukkan model kelas yang diserialisasi ke dalam database lokal.\n" +
@@ -1129,13 +1196,19 @@ fun ScholarshipListItemCard(
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .shadow(1.dp, RoundedCornerShape(16.dp))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+        Column(modifier = Modifier.weight(1f).padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
@@ -1260,6 +1333,7 @@ fun ScholarshipListItemCard(
                 }
             }
         }
+        }
     }
 }
 
@@ -1272,13 +1346,19 @@ fun CourseListItemCard(
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .shadow(1.dp, RoundedCornerShape(16.dp))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.secondary)
+            )
+        Column(modifier = Modifier.weight(1f).padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
@@ -1392,6 +1472,7 @@ fun CourseListItemCard(
                 }
             }
         }
+        }
     }
 }
 
@@ -1400,30 +1481,41 @@ fun EmptyStateView(message: String, sub: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(40.dp),
+            .padding(horizontal = 40.dp, vertical = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            Icons.Default.Info,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.outline,
-            modifier = Modifier.size(48.dp)
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .background(
+                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Default.Inbox,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.65f),
+                modifier = Modifier.size(38.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = message,
-            fontSize = 15.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = sub,
-            fontSize = 12.sp,
+            fontSize = 13.sp,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            lineHeight = 18.sp
         )
     }
 }

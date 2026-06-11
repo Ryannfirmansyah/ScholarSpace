@@ -1,10 +1,10 @@
-﻿package com.example.data.repository
+﻿package com.ryan.scholarspace.data.repository
 
-import com.example.data.database.ScholarSpaceDao
-import com.example.data.database.SavedCourseEntity
-import com.example.data.database.SavedScholarshipEntity
-import com.example.data.model.Course
-import com.example.data.model.Scholarship
+import com.ryan.scholarspace.data.database.ScholarSpaceDao
+import com.ryan.scholarspace.data.database.SavedCourseEntity
+import com.ryan.scholarspace.data.database.SavedScholarshipEntity
+import com.ryan.scholarspace.data.model.Course
+import com.ryan.scholarspace.data.model.Scholarship
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

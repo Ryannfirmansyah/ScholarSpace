@@ -1,4 +1,4 @@
-﻿package com.example.data.database
+﻿package com.ryan.scholarspace.data.database
 
 import android.content.Context
 import androidx.room.Database

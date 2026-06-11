@@ -1,4 +1,4 @@
-﻿package com.example
+﻿package com.ryan.scholarspace
 
 import android.content.Intent
 import android.net.Uri
@@ -7,14 +7,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -23,9 +27,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.network.NewsArticle
-import com.example.ui.viewmodel.ScholarSpaceViewModel
-import com.example.ui.viewmodel.NewsState
+import com.ryan.scholarspace.data.network.NewsArticle
+import com.ryan.scholarspace.ui.viewmodel.ScholarSpaceViewModel
+import com.ryan.scholarspace.ui.viewmodel.NewsState
 
 @Composable
 fun NewsScreen(viewModel: ScholarSpaceViewModel) {
@@ -37,38 +41,45 @@ fun NewsScreen(viewModel: ScholarSpaceViewModel) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Header
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 2.dp
+        // Gradient Header - News Screen
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.secondary,
+                            MaterialTheme.colorScheme.primary
+                        )
+                    )
+                )
         ) {
             Row(
                 modifier = Modifier
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .padding(horizontal = 24.dp, vertical = 18.dp)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Berita Pendidikan 📰",
+                        text = "Berita Pendidikan",
                         fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "Informasi terkini seputar beasiswa & pendidikan",
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        color = Color.White.copy(alpha = 0.75f)
                     )
                 }
-                // Tombol Refresh (ketentuan: tombol refresh saat gagal)
                 IconButton(onClick = { viewModel.fetchNews() }) {
                     Icon(
                         Icons.Default.Refresh,
                         contentDescription = "Refresh berita",
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = Color.White
                     )
                 }
             }
@@ -164,61 +175,77 @@ fun NewsArticleCard(article: NewsArticle, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Source badge
-            if (article.source?.name?.isNotEmpty() == true) {
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer
-                ) {
+        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            // Left accent bar for news (tertiary/amber color)
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.tertiary)
+            )
+            Column(modifier = Modifier.weight(1f).padding(14.dp)) {
+                // Source badge
+                if (article.source?.name?.isNotEmpty() == true) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Text(
+                            text = article.source.name,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                // Title
+                Text(
+                    text = article.title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 20.sp
+                )
+
+                // Description
+                if (!article.description.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = article.source.name,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        text = article.description,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 17.sp
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+
+                // Date with icon
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.CalendarToday,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = article.publishedAt.take(10),
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
-
-            // Title
-            Text(
-                text = article.title,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                lineHeight = 20.sp
-            )
-
-            // Description
-            if (!article.description.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = article.description,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 17.sp
-                )
-            }
-
-            // Date
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = article.publishedAt.take(10),
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                fontWeight = FontWeight.Medium
-            )
         }
     }
 }

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example"
+    namespace = "com.ryan.scholarspace"
     compileSdk = 35
 
     defaultConfig {
