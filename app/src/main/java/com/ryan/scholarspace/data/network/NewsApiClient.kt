@@ -81,9 +81,9 @@ object NewsApiClient {
             val response = service.getEducationNews(
                 apiKey = API_KEY,
                 apiHost = API_HOST,
-                query = "beasiswa pendidikan kuliah",
-                language = "id",
-                pageSize = 10
+                query = "scholarship education university Indonesia",
+                language = "en",
+                pageSize = 15
             )
             if (response.articles.isNotEmpty()) {
                 Result.success(response.articles)

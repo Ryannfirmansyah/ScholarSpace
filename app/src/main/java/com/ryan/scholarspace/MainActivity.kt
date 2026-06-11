@@ -47,7 +47,7 @@ import com.ryan.scholarspace.ui.viewmodel.*
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: EduSearchViewModel by viewModels()
+    private val viewModel: ScholarSpaceViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun EduSearchApp(viewModel: EduSearchViewModel) {
+fun EduSearchApp(viewModel: ScholarSpaceViewModel) {
     val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
     val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
     
@@ -272,7 +272,7 @@ fun EduSearchNavigationRail(
 // --- 1. Dashboard Screen ---
 
 @Composable
-fun DashboardScreen(viewModel: EduSearchViewModel) {
+fun DashboardScreen(viewModel: ScholarSpaceViewModel) {
     val currentTab by viewModel.currentItemTab.collectAsStateWithLifecycle()
     val scholarships by viewModel.scholarships.collectAsStateWithLifecycle()
     val courses by viewModel.courses.collectAsStateWithLifecycle()
@@ -574,7 +574,7 @@ fun CategoryFilterChip(
 // --- 2. Saved (Favorites) View Screen ---
 
 @Composable
-fun SavedScreen(viewModel: EduSearchViewModel) {
+fun SavedScreen(viewModel: ScholarSpaceViewModel) {
     var favoriteTab by remember { mutableStateOf(ItemTab.SCHOLARSHIPS) }
     val savedScholarships by viewModel.savedScholarships.collectAsStateWithLifecycle()
     val savedCourses by viewModel.savedCourses.collectAsStateWithLifecycle()
@@ -710,7 +710,7 @@ fun SavedScreen(viewModel: EduSearchViewModel) {
 // --- 3. Assistant (Gemini AI Companion) Screen ---
 
 @Composable
-fun AssistantScreen(viewModel: EduSearchViewModel) {
+fun AssistantScreen(viewModel: ScholarSpaceViewModel) {
     val messages by viewModel.chatMessages.collectAsStateWithLifecycle()
     val isLoading by viewModel.aiIsLoading.collectAsStateWithLifecycle()
     var textInput by remember { mutableStateOf("") }
@@ -948,7 +948,7 @@ fun ChatBubble(msg: ChatMessage) {
 // --- 4. Settings & Student Bio Screen ---
 
 @Composable
-fun SettingsScreen(viewModel: EduSearchViewModel) {
+fun SettingsScreen(viewModel: ScholarSpaceViewModel) {
     val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
 
     Column(
