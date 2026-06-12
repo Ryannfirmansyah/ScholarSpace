@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -738,9 +739,18 @@ fun AssistantScreen(viewModel: ScholarSpaceViewModel) {
         }
     }
 
+    // Scroll to bottom when keyboard opens
+    val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
+    LaunchedEffect(imeBottom) {
+        if (imeBottom > 0 && messages.isNotEmpty()) {
+            scrollState.animateScrollToItem(messages.size - 1)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .imePadding()
             .background(MaterialTheme.colorScheme.background)
     ) {
         // Gradient AI Header
@@ -844,9 +854,7 @@ fun AssistantScreen(viewModel: ScholarSpaceViewModel) {
             tonalElevation = 8.dp
         ) {
             Row(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .windowInsetsPadding(WindowInsets.navigationBars),
+                modifier = Modifier.padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(

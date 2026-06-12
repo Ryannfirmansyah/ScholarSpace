@@ -218,13 +218,26 @@ class ScholarSpaceViewModel(application: Application) : AndroidViewModel(applica
         chatMessages.value = chatMessages.value + ChatMessage(sender = MessageSender.USER, text = text)
         aiIsLoading.value = true
         viewModelScope.launch {
-            val history = chatMessages.value.dropLast(1).map {
+            val history = chatMessages.value.dropLast(1).takeLast(10).map {
                 Content(parts = listOf(Part(text = it.text)))
             }
-            val reply = GeminiClient.askGemini(text, history)
+            val reply = GeminiClient.askGemini(text, history, buildAppContext())
             chatMessages.value = chatMessages.value + ChatMessage(sender = MessageSender.AI, text = reply)
             aiIsLoading.value = false
         }
+    }
+
+    private fun buildAppContext(): String {
+        val sb = StringBuilder()
+        sb.append("DATA BEASISWA DI APLIKASI:\n")
+        repository.preloadedScholarships.forEach { s ->
+            sb.append("- ${s.title} (${s.provider}): ${s.benefits.take(80)}, deadline=${s.deadline}, status=${s.status}\n")
+        }
+        sb.append("\nDATA KURSUS DI APLIKASI:\n")
+        repository.preloadedCourses.forEach { c ->
+            sb.append("- ${c.title} (${c.platform}): ${c.price}, rating=${c.rating}\n")
+        }
+        return sb.toString()
     }
 
     fun clearChat() {

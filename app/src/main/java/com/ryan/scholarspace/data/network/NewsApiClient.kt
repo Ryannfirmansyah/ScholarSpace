@@ -1,98 +1,130 @@
-﻿package com.ryan.scholarspace.data.network
+package com.ryan.scholarspace.data.network
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import android.util.Xml
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.Query
+import okhttp3.Request
+import org.xmlpull.v1.XmlPullParser
 import java.util.concurrent.TimeUnit
 
-@JsonClass(generateAdapter = true)
 data class NewsArticle(
-    @Json(name = "title") val title: String = "",
-    @Json(name = "description") val description: String? = null,
-    @Json(name = "url") val url: String = "",
-    @Json(name = "urlToImage") val urlToImage: String? = null,
-    @Json(name = "publishedAt") val publishedAt: String = "",
-    @Json(name = "source") val source: NewsSource? = null
+    val title: String = "",
+    val description: String? = null,
+    val url: String = "",
+    val urlToImage: String? = null,
+    val publishedAt: String = "",
+    val source: NewsSource? = null
 )
 
-@JsonClass(generateAdapter = true)
 data class NewsSource(
-    @Json(name = "name") val name: String = ""
+    val name: String = ""
 )
-
-@JsonClass(generateAdapter = true)
-data class NewsResponse(
-    @Json(name = "status") val status: String = "",
-    @Json(name = "totalResults") val totalResults: Int = 0,
-    @Json(name = "articles") val articles: List<NewsArticle> = emptyList()
-)
-
-interface NewsApiService {
-    @GET("v2/everything")
-    suspend fun getEducationNews(
-        @Header("X-RapidAPI-Key") apiKey: String,
-        @Header("X-RapidAPI-Host") apiHost: String,
-        @Query("q") query: String = "beasiswa pendidikan Indonesia",
-        @Query("language") language: String = "id",
-        @Query("sortBy") sortBy: String = "publishedAt",
-        @Query("pageSize") pageSize: Int = 10
-    ): NewsResponse
-}
 
 object NewsApiClient {
-    private const val BASE_URL = "https://news-api14.p.rapidapi.com/"
-    private const val API_HOST = "news-api14.p.rapidapi.com"
-    // Gunakan API key RapidAPI gratis - daftar di rapidapi.com
-    private const val API_KEY = "874f31c739msh89718c96aa3af87p1c731ejsn238ce3f29621"
+    private const val RSS_URL =
+        "https://news.google.com/rss/search?q=beasiswa+pendidikan+kursus+Indonesia&hl=id&gl=ID&ceid=ID:id"
 
-    private val moshi = Moshi.Builder()
-        .addLast(KotlinJsonAdapterFactory())
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(20, TimeUnit.SECONDS)
+        .readTimeout(20, TimeUnit.SECONDS)
         .build()
 
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BASIC
-    }
-
-    private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .addInterceptor(loggingInterceptor)
-        .build()
-
-    private val service: NewsApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
-            .create(NewsApiService::class.java)
-    }
-
-    suspend fun getEducationNews(): Result<List<NewsArticle>> {
-        return try {
-            val response = service.getEducationNews(
-                apiKey = API_KEY,
-                apiHost = API_HOST,
-                query = "scholarship education university Indonesia",
-                language = "en",
-                pageSize = 15
-            )
-            if (response.articles.isNotEmpty()) {
-                Result.success(response.articles)
-            } else {
-                Result.failure(Exception("Tidak ada berita tersedia"))
+    suspend fun getEducationNews(): Result<List<NewsArticle>> = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url(RSS_URL)
+                .header("User-Agent", "Mozilla/5.0 (Android)")
+                .build()
+            val response = client.newCall(request).execute()
+            if (!response.isSuccessful) {
+                return@withContext Result.failure(Exception("HTTP ${response.code}"))
             }
+            val xml = response.body?.string()
+                ?: return@withContext Result.failure(Exception("Respons kosong"))
+            val articles = parseRss(xml)
+            if (articles.isEmpty()) Result.failure(Exception("Tidak ada berita tersedia"))
+            else Result.success(articles)
         } catch (e: Exception) {
             e.printStackTrace()
             Result.failure(e)
         }
+    }
+
+    private fun parseRss(xml: String): List<NewsArticle> {
+        val articles = mutableListOf<NewsArticle>()
+        try {
+            val parser = Xml.newPullParser()
+            parser.setInput(xml.reader())
+
+            var inItem = false
+            var tag = ""
+            var title = ""; var desc = ""; var link = ""; var pubDate = ""; var sourceName = ""
+
+            var event = parser.eventType
+            while (event != XmlPullParser.END_DOCUMENT) {
+                when (event) {
+                    XmlPullParser.START_TAG -> {
+                        tag = parser.name ?: ""
+                        if (tag == "item") {
+                            inItem = true
+                            title = ""; desc = ""; link = ""; pubDate = ""; sourceName = ""
+                        }
+                        if (tag == "source" && inItem && parser.attributeCount > 0) {
+                            sourceName = parser.getAttributeValue(null, "url") ?: ""
+                        }
+                    }
+                    XmlPullParser.TEXT, XmlPullParser.CDSECT -> if (inItem) {
+                        val t = parser.text?.trim() ?: ""
+                        if (t.isNotEmpty()) when (tag) {
+                            "title" -> title += t
+                            "description" -> if (desc.isEmpty()) desc = t
+                            "link" -> if (link.isEmpty()) link = t
+                            "pubDate" -> if (pubDate.isEmpty()) pubDate = t
+                            "source" -> if (sourceName.isEmpty()) sourceName = t
+                        }
+                    }
+                    XmlPullParser.END_TAG -> {
+                        if (parser.name == "item" && inItem) {
+                            val cleanTitle = title.stripHtml()
+                            val cleanDesc = desc.stripHtml()
+                            if (cleanTitle.isNotEmpty()) {
+                                articles.add(
+                                    NewsArticle(
+                                        title = cleanTitle,
+                                        description = cleanDesc.ifEmpty { null },
+                                        url = link,
+                                        publishedAt = formatDate(pubDate),
+                                        source = NewsSource(sourceName.ifEmpty { "Google News" })
+                                    )
+                                )
+                            }
+                            inItem = false
+                        }
+                        tag = ""
+                    }
+                }
+                event = parser.next()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return articles.take(15)
+    }
+
+    private fun String.stripHtml(): String =
+        replace(Regex("<[^>]+>"), " ").replace(Regex("\\s+"), " ").trim()
+
+    private fun formatDate(rssDate: String): String {
+        val regex = Regex("""(\d{1,2})\s+(\w{3})\s+(\d{4})""")
+        val match = regex.find(rssDate) ?: return rssDate.take(10)
+        val (day, month, year) = match.destructured
+        val monthNum = when (month.lowercase()) {
+            "jan" -> "01"; "feb" -> "02"; "mar" -> "03"; "apr" -> "04"
+            "may" -> "05"; "jun" -> "06"; "jul" -> "07"; "aug" -> "08"
+            "sep" -> "09"; "oct" -> "10"; "nov" -> "11"; "dec" -> "12"
+            else -> "01"
+        }
+        return "$year-$monthNum-${day.padStart(2, '0')}"
     }
 }
