@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
@@ -176,75 +175,61 @@ fun NewsArticleCard(article: NewsArticle, onClick: () -> Unit) {
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            // Left accent bar for news (tertiary/amber color)
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.tertiary)
-            )
-            Column(modifier = Modifier.weight(1f).padding(14.dp)) {
-                // Source badge
-                if (article.source?.name?.isNotEmpty() == true) {
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Text(
-                            text = article.source.name,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
+        Column(modifier = Modifier.padding(16.dp)) {
+            if (article.source?.name?.isNotEmpty() == true) {
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Text(
+                        text = article.source.name,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                    )
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-                // Title
+            Text(
+                text = article.title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 21.sp
+            )
+
+            if (!article.description.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = article.title,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    text = article.description,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    lineHeight = 20.sp
+                    lineHeight = 17.sp
                 )
+            }
 
-                // Description
-                if (!article.description.isNullOrEmpty()) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = article.description,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
-                        lineHeight = 17.sp
-                    )
-                }
-
-                // Date with icon
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.CalendarToday,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = article.publishedAt.take(10),
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.CalendarToday,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    modifier = Modifier.size(12.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = article.publishedAt.take(10),
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                )
             }
         }
     }

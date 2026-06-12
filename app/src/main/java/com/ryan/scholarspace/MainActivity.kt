@@ -203,41 +203,42 @@ fun EduSearchBottomBar(
     onScreenSelected: (AppScreen) -> Unit
 ) {
     NavigationBar(
-        modifier = Modifier.shadow(8.dp),
-        tonalElevation = 8.dp
+        modifier = Modifier.shadow(1.dp),
+        tonalElevation = 1.dp,
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         NavigationBarItem(
             selected = currentScreen == AppScreen.DASHBOARD,
             onClick = { onScreenSelected(AppScreen.DASHBOARD) },
             icon = { Icon(Icons.Default.School, contentDescription = "Beranda") },
-            label = { Text("Eksplor", fontWeight = FontWeight.Bold, fontSize = 11.sp) },
+            label = { Text("Eksplor", fontSize = 11.sp) },
             modifier = Modifier.testTag("nav_eks_button")
         )
         NavigationBarItem(
             selected = currentScreen == AppScreen.SAVED,
             onClick = { onScreenSelected(AppScreen.SAVED) },
             icon = { Icon(Icons.Default.Bookmark, contentDescription = "Tersimpan") },
-            label = { Text("Simpan", fontWeight = FontWeight.Bold, fontSize = 11.sp) },
+            label = { Text("Simpan", fontSize = 11.sp) },
             modifier = Modifier.testTag("nav_saved_button")
         )
         NavigationBarItem(
             selected = currentScreen == AppScreen.ASSISTANT,
             onClick = { onScreenSelected(AppScreen.ASSISTANT) },
             icon = { Icon(Icons.Default.Chat, contentDescription = "Asisten AI") },
-            label = { Text("AI Asisten", fontWeight = FontWeight.Bold, fontSize = 11.sp) },
+            label = { Text("AI Asisten", fontSize = 11.sp) },
             modifier = Modifier.testTag("nav_ai_button")
         )
         NavigationBarItem(
             selected = currentScreen == AppScreen.NEWS,
             onClick = { onScreenSelected(AppScreen.NEWS) },
             icon = { Icon(Icons.Default.Newspaper, contentDescription = "Berita") },
-            label = { Text("Berita", fontWeight = FontWeight.Bold, fontSize = 11.sp) }
+            label = { Text("Berita", fontSize = 11.sp) }
         )
         NavigationBarItem(
             selected = currentScreen == AppScreen.PROFILE,
             onClick = { onScreenSelected(AppScreen.PROFILE) },
             icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Profil") },
-            label = { Text("Profil", fontWeight = FontWeight.Bold, fontSize = 11.sp) },
+            label = { Text("Profil", fontSize = 11.sp) },
             modifier = Modifier.testTag("nav_set_button")
         )
     }
@@ -310,7 +311,7 @@ fun DashboardScreen(viewModel: ScholarSpaceViewModel) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Gradient Hero Header
+        // Hero Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -322,7 +323,7 @@ fun DashboardScreen(viewModel: ScholarSpaceViewModel) {
                         )
                     )
                 )
-                .padding(start = 24.dp, end = 24.dp, top = 22.dp, bottom = 20.dp)
+                .padding(start = 24.dp, end = 20.dp, top = 20.dp, bottom = 20.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -330,34 +331,37 @@ fun DashboardScreen(viewModel: ScholarSpaceViewModel) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "SELAMAT DATANG",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.75f),
-                        letterSpacing = 1.5.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    val firstName = currentUser?.fullName?.trim()?.split(" ")?.firstOrNull()
+                    if (firstName != null) {
+                        Text(
+                            text = "Halo, $firstName",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White.copy(alpha = 0.82f)
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                    }
                     Text(
                         text = "ScholarSpace",
-                        fontSize = 26.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
+                        color = Color.White,
+                        letterSpacing = (-0.3).sp
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(3.dp))
                     Text(
-                        text = "Temukan beasiswa global dan kursus terakreditasi.",
+                        text = "Temukan beasiswa & kursus terbaik.",
                         fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.75f)
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Box(
                     modifier = Modifier
-                        .size(46.dp)
+                        .size(44.dp)
                         .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.2f))
-                        .border(1.5.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+                        .background(Color.White.copy(alpha = 0.18f))
+                        .border(1.5.dp, Color.White.copy(alpha = 0.4f), CircleShape)
                         .clickable { viewModel.currentScreen.value = AppScreen.PROFILE },
                     contentAlignment = Alignment.Center
                 ) {
@@ -373,8 +377,8 @@ fun DashboardScreen(viewModel: ScholarSpaceViewModel) {
                             text = currentUser?.fullName?.trim()?.split(" ")
                                 ?.take(2)?.joinToString("") { it.take(1).uppercase() }
                                 ?: "?",
-                            fontWeight = FontWeight.Black,
-                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
                             color = Color.White
                         )
                     }
@@ -556,27 +560,31 @@ fun DashboardScreen(viewModel: ScholarSpaceViewModel) {
 
 @Composable
 fun HorizontalSearchSection(query: String, onQueryChange: (String) -> Unit) {
-    OutlinedTextField(
+    TextField(
         value = query,
         onValueChange = onQueryChange,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .shadow(2.dp, RoundedCornerShape(28.dp))
             .testTag("dashboard_search_input"),
-        placeholder = { Text("Cari beasiswa, kursus, teknologi...", fontSize = 14.sp) },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(20.dp)) },
+        placeholder = { Text("Cari beasiswa, kursus, teknologi...", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)) },
         trailingIcon = {
             if (query.isNotEmpty()) {
                 IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                    Icon(Icons.Default.Clear, contentDescription = "Clear search", modifier = Modifier.size(18.dp))
                 }
             }
         },
         singleLine = true,
-        shape = RoundedCornerShape(16.dp),
-        colors = OutlinedTextFieldDefaults.colors(
+        shape = RoundedCornerShape(28.dp),
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            focusedContainerColor = MaterialTheme.colorScheme.surface
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent
         )
     )
 }
@@ -772,7 +780,7 @@ fun AssistantScreen(viewModel: ScholarSpaceViewModel) {
             .imePadding()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Gradient AI Header
+        // AI Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -786,32 +794,43 @@ fun AssistantScreen(viewModel: ScholarSpaceViewModel) {
                 )
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp).fillMaxWidth(),
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "ScholarSpace AI",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "Tanyakan beasiswa, motivation letter, atau saran kursus.",
-                        fontSize = 11.sp,
-                        color = Color.White.copy(alpha = 0.75f)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(Color.White.copy(alpha = 0.18f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Android, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "ScholarSpace AI",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "Tanyakan beasiswa, kursus, atau saran studi",
+                            fontSize = 11.sp,
+                            color = Color.White.copy(alpha = 0.72f)
+                        )
+                    }
                 }
 
                 IconButton(
                     onClick = { viewModel.clearChat() },
                     colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = Color.White.copy(alpha = 0.9f)
+                        contentColor = Color.White.copy(alpha = 0.85f)
                     ),
                     modifier = Modifier.testTag("btn_clear_chat")
                 ) {
-                    Icon(Icons.Default.DeleteSweep, contentDescription = "Hapus Riwayat Chat")
+                    Icon(Icons.Default.DeleteSweep, contentDescription = "Hapus Riwayat Chat", modifier = Modifier.size(22.dp))
                 }
             }
         }
@@ -1237,26 +1256,18 @@ fun ScholarshipListItemCard(
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
     ) {
-        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.primary)
-            )
-        Column(modifier = Modifier.weight(1f).padding(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    // Category & Sponsor badge row
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(
                             shape = RoundedCornerShape(6.dp),
@@ -1266,12 +1277,10 @@ fun ScholarshipListItemCard(
                             Text(
                                 text = scholarship.category,
                                 fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                             )
                         }
-                        
-                        // Custom tag if user inserted manually
                         if (scholarship.isCustom) {
                             Spacer(modifier = Modifier.width(6.dp))
                             Surface(
@@ -1282,8 +1291,8 @@ fun ScholarshipListItemCard(
                                 Text(
                                     text = "Buatan Anda",
                                     fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                                 )
                             }
                         }
@@ -1291,25 +1300,23 @@ fun ScholarshipListItemCard(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Title
                     Text(
                         text = scholarship.title,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 21.sp
                     )
-                    
-                    // Provider agency name
                     Text(
                         text = scholarship.provider,
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                        modifier = Modifier.padding(top = 2.dp)
                     )
                 }
 
-                // Favorite Toggle button
                 IconButton(
                     onClick = onToggleFavorite,
                     modifier = Modifier.testTag("fav_schol_${scholarship.id}")
@@ -1323,7 +1330,7 @@ fun ScholarshipListItemCard(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(10.dp))
 
             Row(
@@ -1331,49 +1338,45 @@ fun ScholarshipListItemCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Deadline section with Calendar icon
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.CalendarToday,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(14.dp)
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        modifier = Modifier.size(12.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Deadline: ${scholarship.deadline}",
+                        text = scholarship.deadline,
                         fontSize = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
                     )
                 }
 
-                // Status Badge Buka / Tutup
                 val statusColor = if (scholarship.status == "Buka") ColorOpen else ColorClosed
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = statusColor.copy(alpha = 0.15f),
+                    color = statusColor.copy(alpha = 0.12f),
                     contentColor = statusColor
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(6.dp)
+                                .size(5.dp)
                                 .background(statusColor, CircleShape)
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(5.dp))
                         Text(
                             text = scholarship.status,
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.Black
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
             }
-        }
         }
     }
 }
@@ -1387,26 +1390,18 @@ fun CourseListItemCard(
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
     ) {
-        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.secondary)
-            )
-        Column(modifier = Modifier.weight(1f).padding(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    // Category & Platform badges row
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(
                             shape = RoundedCornerShape(6.dp),
@@ -1416,8 +1411,8 @@ fun CourseListItemCard(
                             Text(
                                 text = course.platform,
                                 fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                             )
                         }
 
@@ -1425,39 +1420,37 @@ fun CourseListItemCard(
 
                         Surface(
                             shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ) {
                             Text(
                                 text = course.category,
                                 fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                             )
                         }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Title
                     Text(
                         text = course.title,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 21.sp
                     )
-                    
-                    // Instructor
                     Text(
-                        text = "Pengajar: ${course.instructor}",
+                        text = course.instructor,
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                        modifier = Modifier.padding(top = 2.dp)
                     )
                 }
 
-                // Bookmark Toggle
                 IconButton(
                     onClick = onToggleFavorite,
                     modifier = Modifier.testTag("fav_course_${course.id}")
@@ -1471,7 +1464,7 @@ fun CourseListItemCard(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(10.dp))
 
             Row(
@@ -1479,40 +1472,37 @@ fun CourseListItemCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Gold star rating badge
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.Star,
                         contentDescription = null,
                         tint = GoldStar,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${course.rating} / 5.0",
+                        text = "${course.rating}",
                         fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                // Price Badge
                 val isFree = course.price.lowercase() == "gratis" || course.price.lowercase().contains("audit")
                 val badgeColor = if (isFree) ColorOpen else MaterialTheme.colorScheme.primary
                 Surface(
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(20.dp),
                     color = badgeColor.copy(alpha = 0.12f),
                     contentColor = badgeColor
                 ) {
                     Text(
                         text = course.price,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
             }
-        }
         }
     }
 }
@@ -2216,56 +2206,67 @@ fun LoginScreen(viewModel: ScholarSpaceViewModel, onGoRegister: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFF1A237E), Color(0xFF283593), Color(0xFF1565C0)))),
+            .background(Brush.verticalGradient(listOf(Color(0xFF312E81), Color(0xFF4338CA), Color(0xFF4F46E5)))),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(32.dp)
+                .padding(horizontal = 28.dp, vertical = 32.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                Icons.Default.School, contentDescription = null,
-                tint = Color.White, modifier = Modifier.size(72.dp)
-            )
-            Spacer(Modifier.height(8.dp))
-            Text("ScholarSpace", fontSize = 28.sp, fontWeight = FontWeight.Black, color = Color.White)
-            Text("Masuk ke akun Anda", fontSize = 14.sp, color = Color.White.copy(alpha = 0.75f))
-            Spacer(Modifier.height(32.dp))
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .background(Color.White.copy(alpha = 0.15f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.School, contentDescription = null,
+                    tint = Color.White, modifier = Modifier.size(44.dp)
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+            Text("ScholarSpace", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, letterSpacing = (-0.5).sp)
+            Spacer(Modifier.height(4.dp))
+            Text("Masuk ke akun Anda", fontSize = 13.sp, color = Color.White.copy(alpha = 0.72f))
+            Spacer(Modifier.height(28.dp))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     OutlinedTextField(
                         value = email, onValueChange = { email = it; errorMsg = "" },
                         label = { Text("Email") },
-                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, modifier = Modifier.size(20.dp)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
                     )
                     Spacer(Modifier.height(12.dp))
                     OutlinedTextField(
                         value = password, onValueChange = { password = it; errorMsg = "" },
                         label = { Text("Password") },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(20.dp)) },
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null)
+                                Icon(if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, modifier = Modifier.size(20.dp))
                             }
                         },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
                     )
                     if (errorMsg.isNotEmpty()) {
                         Spacer(Modifier.height(8.dp))
-                        Text(errorMsg, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+                        Text(errorMsg, color = Color(0xFFDC2626), fontSize = 13.sp)
                     }
                     Spacer(Modifier.height(20.dp))
                     Button(
@@ -2276,14 +2277,15 @@ fun LoginScreen(viewModel: ScholarSpaceViewModel, onGoRegister: () -> Unit) {
                         },
                         modifier = Modifier.fillMaxWidth().height(50.dp),
                         enabled = !isLoading,
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4F46E5))
                     ) {
                         if (isLoading) CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
-                        else Text("Masuk", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        else Text("Masuk", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(10.dp))
                     TextButton(onClick = onGoRegister, modifier = Modifier.fillMaxWidth()) {
-                        Text("Belum punya akun? Daftar sekarang", fontSize = 13.sp, color = Color(0xFF1565C0))
+                        Text("Belum punya akun? Daftar sekarang", fontSize = 13.sp, color = Color(0xFF4F46E5))
                     }
                 }
             }
@@ -2307,28 +2309,37 @@ fun RegisterScreen(viewModel: ScholarSpaceViewModel, onGoLogin: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFF1A237E), Color(0xFF283593), Color(0xFF1565C0))))
+            .background(Brush.verticalGradient(listOf(Color(0xFF312E81), Color(0xFF4338CA), Color(0xFF4F46E5))))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 32.dp, vertical = 48.dp),
+                .padding(horizontal = 28.dp, vertical = 40.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(Icons.Default.PersonAdd, contentDescription = null, tint = Color.White, modifier = Modifier.size(56.dp))
-            Spacer(Modifier.height(8.dp))
-            Text("Buat Akun Baru", fontSize = 24.sp, fontWeight = FontWeight.Black, color = Color.White)
-            Text("Daftar untuk mulai menggunakan ScholarSpace", fontSize = 13.sp, color = Color.White.copy(alpha = 0.75f), textAlign = TextAlign.Center)
-            Spacer(Modifier.height(24.dp))
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .background(Color.White.copy(alpha = 0.15f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.PersonAdd, contentDescription = null, tint = Color.White, modifier = Modifier.size(38.dp))
+            }
+            Spacer(Modifier.height(14.dp))
+            Text("Buat Akun Baru", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, letterSpacing = (-0.5).sp)
+            Spacer(Modifier.height(4.dp))
+            Text("Daftar untuk mulai menggunakan ScholarSpace", fontSize = 13.sp, color = Color.White.copy(alpha = 0.72f), textAlign = TextAlign.Center)
+            Spacer(Modifier.height(22.dp))
 
-            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(0.dp)) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     @Composable fun Field(value: String, onChange: (String) -> Unit, label: String, icon: ImageVector, keyboardType: KeyboardType = KeyboardType.Text) {
                         OutlinedTextField(value = value, onValueChange = { onChange(it); errorMsg = "" },
-                            label = { Text(label) }, leadingIcon = { Icon(icon, null) },
+                            label = { Text(label) }, leadingIcon = { Icon(icon, null, modifier = Modifier.size(20.dp)) },
                             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-                            modifier = Modifier.fillMaxWidth(), singleLine = true)
+                            modifier = Modifier.fillMaxWidth(), singleLine = true,
+                            shape = RoundedCornerShape(12.dp))
                         Spacer(Modifier.height(10.dp))
                     }
                     Field(fullName, { fullName = it }, "Nama Lengkap", Icons.Default.Person)
@@ -2336,17 +2347,19 @@ fun RegisterScreen(viewModel: ScholarSpaceViewModel, onGoLogin: () -> Unit) {
                     Field(username, { username = it }, "Username", Icons.Default.AccountCircle)
                     OutlinedTextField(
                         value = password, onValueChange = { password = it; errorMsg = "" },
-                        label = { Text("Password") }, leadingIcon = { Icon(Icons.Default.Lock, null) },
-                        trailingIcon = { IconButton(onClick = { passwordVisible = !passwordVisible }) { Icon(if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null) } },
+                        label = { Text("Password") }, leadingIcon = { Icon(Icons.Default.Lock, null, modifier = Modifier.size(20.dp)) },
+                        trailingIcon = { IconButton(onClick = { passwordVisible = !passwordVisible }) { Icon(if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, modifier = Modifier.size(20.dp)) } },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth(), singleLine = true
+                        modifier = Modifier.fillMaxWidth(), singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
                     )
                     Spacer(Modifier.height(10.dp))
                     OutlinedTextField(
                         value = confirmPassword, onValueChange = { confirmPassword = it; errorMsg = "" },
-                        label = { Text("Konfirmasi Password") }, leadingIcon = { Icon(Icons.Default.Lock, null) },
+                        label = { Text("Konfirmasi Password") }, leadingIcon = { Icon(Icons.Default.Lock, null, modifier = Modifier.size(20.dp)) },
                         visualTransformation = PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth(), singleLine = true
+                        modifier = Modifier.fillMaxWidth(), singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
                     )
                     Spacer(Modifier.height(10.dp))
                     Field(university, { university = it }, "Universitas", Icons.Default.School)
@@ -2371,14 +2384,15 @@ fun RegisterScreen(viewModel: ScholarSpaceViewModel, onGoLogin: () -> Unit) {
                         },
                         modifier = Modifier.fillMaxWidth().height(50.dp),
                         enabled = !isLoading,
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4F46E5))
                     ) {
                         if (isLoading) CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
-                        else Text("Daftar", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        else Text("Daftar", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(10.dp))
                     TextButton(onClick = onGoLogin, modifier = Modifier.fillMaxWidth()) {
-                        Text("Sudah punya akun? Masuk", fontSize = 13.sp, color = Color(0xFF1565C0))
+                        Text("Sudah punya akun? Masuk", fontSize = 13.sp, color = Color(0xFF4F46E5))
                     }
                 }
             }
