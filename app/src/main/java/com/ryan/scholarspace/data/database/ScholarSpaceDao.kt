@@ -37,4 +37,20 @@ interface ScholarSpaceDao {
     
     @Query("DELETE FROM saved_courses")
     suspend fun clearAllCourses()
+
+    // --- Users ---
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUser(user: UserEntity)
+
+    @Update
+    suspend fun updateUser(user: UserEntity)
+
+    @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
+    suspend fun getUserByEmail(email: String): UserEntity?
+
+    @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
+    suspend fun getUserById(id: String): UserEntity?
+
+    @Query("SELECT COUNT(*) FROM users WHERE email = :email")
+    suspend fun countUserByEmail(email: String): Int
 }

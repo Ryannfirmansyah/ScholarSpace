@@ -14,12 +14,13 @@ import com.ryan.scholarspace.data.network.NewsArticle
 import com.ryan.scholarspace.data.network.Part
 import com.ryan.scholarspace.data.repository.ScholarSpaceRepository
 import kotlinx.coroutines.flow.*
+import com.ryan.scholarspace.data.database.UserEntity
 import kotlinx.coroutines.launch
 import java.util.UUID
 import java.util.concurrent.Executors
 
 enum class AppScreen {
-    DASHBOARD, SAVED, ASSISTANT, NEWS, SETTINGS
+    DASHBOARD, SAVED, ASSISTANT, NEWS, SETTINGS, PROFILE
 }
 
 enum class ItemTab {
@@ -65,6 +66,10 @@ class ScholarSpaceViewModel(application: Application) : AndroidViewModel(applica
     // Dark mode state persisted via SharedPreferences
     val isDarkMode = MutableStateFlow(prefs.getBoolean("dark_mode", false))
 
+    // --- Auth State ---
+    val currentUser = MutableStateFlow<UserEntity?>(null)
+    val isLoggedIn = MutableStateFlow(false)
+
     // --- News State (Retrofit API) ---
     val newsState = MutableStateFlow<NewsState>(NewsState.Loading)
 
@@ -108,6 +113,13 @@ class ScholarSpaceViewModel(application: Application) : AndroidViewModel(applica
     val aiIsLoading = MutableStateFlow(false)
 
     init {
+        val savedUserId = prefs.getString("logged_in_user_id", null)
+        if (savedUserId != null) {
+            viewModelScope.launch {
+                val user = repository.getUserById(savedUserId)
+                if (user != null) { currentUser.value = user; isLoggedIn.value = true }
+            }
+        }
         fetchNews()
         runBackgroundDataInit()
     }
@@ -223,6 +235,58 @@ class ScholarSpaceViewModel(application: Application) : AndroidViewModel(applica
     fun toggleDarkMode() {
         isDarkMode.value = !isDarkMode.value
         prefs.edit().putBoolean("dark_mode", isDarkMode.value).apply()
+    }
+
+    fun login(email: String, password: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            val user = repository.getUserByEmail(email.trim().lowercase())
+            when {
+                user == null -> onError("Email tidak terdaftar")
+                user.password != password -> onError("Password salah")
+                else -> {
+                    currentUser.value = user
+                    isLoggedIn.value = true
+                    prefs.edit().putString("logged_in_user_id", user.id).apply()
+                    onSuccess()
+                }
+            }
+        }
+    }
+
+    fun register(fullName: String, email: String, username: String, password: String,
+                 university: String, major: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            if (repository.isEmailRegistered(email.trim().lowercase())) {
+                onError("Email sudah terdaftar"); return@launch
+            }
+            val user = UserEntity(
+                id = UUID.randomUUID().toString(),
+                fullName = fullName.trim(), email = email.trim().lowercase(),
+                username = username.trim(), password = password,
+                university = university.trim(), major = major.trim()
+            )
+            repository.registerUser(user)
+            currentUser.value = user
+            isLoggedIn.value = true
+            prefs.edit().putString("logged_in_user_id", user.id).apply()
+            onSuccess()
+        }
+    }
+
+    fun updateProfile(fullName: String, university: String, major: String) {
+        val user = currentUser.value ?: return
+        viewModelScope.launch {
+            val updated = user.copy(fullName = fullName.trim(), university = university.trim(), major = major.trim())
+            repository.updateUser(updated)
+            currentUser.value = updated
+        }
+    }
+
+    fun logout() {
+        currentUser.value = null
+        isLoggedIn.value = false
+        prefs.edit().remove("logged_in_user_id").apply()
+        currentScreen.value = AppScreen.DASHBOARD
     }
 
     override fun onCleared() {

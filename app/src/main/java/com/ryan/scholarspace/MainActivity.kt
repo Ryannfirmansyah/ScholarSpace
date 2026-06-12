@@ -35,8 +35,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ryan.scholarspace.data.database.UserEntity
 import com.ryan.scholarspace.data.model.Course
 import com.ryan.scholarspace.data.model.Scholarship
 import com.ryan.scholarspace.ui.theme.ColorClosed
@@ -63,6 +69,13 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun EduSearchApp(viewModel: ScholarSpaceViewModel) {
+    val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
+
+    if (!isLoggedIn) {
+        AuthFlow(viewModel = viewModel)
+        return
+    }
+
     val currentScreen by viewModel.currentScreen.collectAsStateWithLifecycle()
     val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
     
@@ -126,6 +139,7 @@ fun EduSearchApp(viewModel: ScholarSpaceViewModel) {
                             AppScreen.ASSISTANT -> AssistantScreen(viewModel = viewModel)
                             AppScreen.NEWS -> NewsScreen(viewModel = viewModel)
                             AppScreen.SETTINGS -> SettingsScreen(viewModel = viewModel)
+                            AppScreen.PROFILE -> ProfileScreen(viewModel = viewModel)
                         }
                     }
                 }
@@ -215,10 +229,10 @@ fun EduSearchBottomBar(
             label = { Text("Berita", fontWeight = FontWeight.Bold, fontSize = 11.sp) }
         )
         NavigationBarItem(
-            selected = currentScreen == AppScreen.SETTINGS,
-            onClick = { onScreenSelected(AppScreen.SETTINGS) },
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Pengaturan") },
-            label = { Text("Profile", fontWeight = FontWeight.Bold, fontSize = 11.sp) },
+            selected = currentScreen == AppScreen.PROFILE,
+            onClick = { onScreenSelected(AppScreen.PROFILE) },
+            icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Profil") },
+            label = { Text("Profil", fontWeight = FontWeight.Bold, fontSize = 11.sp) },
             modifier = Modifier.testTag("nav_set_button")
         )
     }
@@ -261,10 +275,10 @@ fun EduSearchNavigationRail(
             label = { Text("Asisten AI") }
         )
         NavigationRailItem(
-            selected = currentScreen == AppScreen.SETTINGS,
-            onClick = { onScreenSelected(AppScreen.SETTINGS) },
-            icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-            label = { Text("Profile") }
+            selected = currentScreen == AppScreen.PROFILE,
+            onClick = { onScreenSelected(AppScreen.PROFILE) },
+            icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
+            label = { Text("Profil") }
         )
     }
 }
@@ -2149,5 +2163,387 @@ fun AddCourseDialog(
                 }
             }
         }
+    }
+}
+
+// ===================== AUTH FLOW =====================
+
+@Composable
+fun AuthFlow(viewModel: ScholarSpaceViewModel) {
+    var showRegister by remember { mutableStateOf(false) }
+    if (showRegister) {
+        RegisterScreen(viewModel = viewModel, onGoLogin = { showRegister = false })
+    } else {
+        LoginScreen(viewModel = viewModel, onGoRegister = { showRegister = true })
+    }
+}
+
+@Composable
+fun LoginScreen(viewModel: ScholarSpaceViewModel, onGoRegister: () -> Unit) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(Color(0xFF1A237E), Color(0xFF283593), Color(0xFF1565C0)))),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                Icons.Default.School, contentDescription = null,
+                tint = Color.White, modifier = Modifier.size(72.dp)
+            )
+            Spacer(Modifier.height(8.dp))
+            Text("ScholarSpace", fontSize = 28.sp, fontWeight = FontWeight.Black, color = Color.White)
+            Text("Masuk ke akun Anda", fontSize = 14.sp, color = Color.White.copy(alpha = 0.75f))
+            Spacer(Modifier.height(32.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    OutlinedTextField(
+                        value = email, onValueChange = { email = it; errorMsg = "" },
+                        label = { Text("Email") },
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = password, onValueChange = { password = it; errorMsg = "" },
+                        label = { Text("Password") },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null)
+                            }
+                        },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    if (errorMsg.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(errorMsg, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+                    }
+                    Spacer(Modifier.height(20.dp))
+                    Button(
+                        onClick = {
+                            if (email.isBlank() || password.isBlank()) { errorMsg = "Isi semua kolom"; return@Button }
+                            isLoading = true
+                            viewModel.login(email, password, onSuccess = { isLoading = false }, onError = { isLoading = false; errorMsg = it })
+                        },
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        enabled = !isLoading,
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        if (isLoading) CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                        else Text("Masuk", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    TextButton(onClick = onGoRegister, modifier = Modifier.fillMaxWidth()) {
+                        Text("Belum punya akun? Daftar sekarang", fontSize = 13.sp, color = Color(0xFF1565C0))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RegisterScreen(viewModel: ScholarSpaceViewModel, onGoLogin: () -> Unit) {
+    var fullName by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var university by remember { mutableStateOf("") }
+    var major by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(Color(0xFF1A237E), Color(0xFF283593), Color(0xFF1565C0))))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 32.dp, vertical = 48.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(Icons.Default.PersonAdd, contentDescription = null, tint = Color.White, modifier = Modifier.size(56.dp))
+            Spacer(Modifier.height(8.dp))
+            Text("Buat Akun Baru", fontSize = 24.sp, fontWeight = FontWeight.Black, color = Color.White)
+            Text("Daftar untuk mulai menggunakan ScholarSpace", fontSize = 13.sp, color = Color.White.copy(alpha = 0.75f), textAlign = TextAlign.Center)
+            Spacer(Modifier.height(24.dp))
+
+            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    @Composable fun Field(value: String, onChange: (String) -> Unit, label: String, icon: ImageVector, keyboardType: KeyboardType = KeyboardType.Text) {
+                        OutlinedTextField(value = value, onValueChange = { onChange(it); errorMsg = "" },
+                            label = { Text(label) }, leadingIcon = { Icon(icon, null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                            modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        Spacer(Modifier.height(10.dp))
+                    }
+                    Field(fullName, { fullName = it }, "Nama Lengkap", Icons.Default.Person)
+                    Field(email, { email = it }, "Email", Icons.Default.Email, KeyboardType.Email)
+                    Field(username, { username = it }, "Username", Icons.Default.AccountCircle)
+                    OutlinedTextField(
+                        value = password, onValueChange = { password = it; errorMsg = "" },
+                        label = { Text("Password") }, leadingIcon = { Icon(Icons.Default.Lock, null) },
+                        trailingIcon = { IconButton(onClick = { passwordVisible = !passwordVisible }) { Icon(if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null) } },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(), singleLine = true
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    OutlinedTextField(
+                        value = confirmPassword, onValueChange = { confirmPassword = it; errorMsg = "" },
+                        label = { Text("Konfirmasi Password") }, leadingIcon = { Icon(Icons.Default.Lock, null) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(), singleLine = true
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Field(university, { university = it }, "Universitas", Icons.Default.School)
+                    Field(major, { major = it }, "Jurusan / Program Studi", Icons.Default.MenuBook)
+                    if (errorMsg.isNotEmpty()) {
+                        Text(errorMsg, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    Button(
+                        onClick = {
+                            when {
+                                fullName.isBlank() || email.isBlank() || username.isBlank() || password.isBlank() -> errorMsg = "Isi semua kolom wajib"
+                                password != confirmPassword -> errorMsg = "Password tidak cocok"
+                                password.length < 6 -> errorMsg = "Password minimal 6 karakter"
+                                else -> {
+                                    isLoading = true
+                                    viewModel.register(fullName, email, username, password, university, major,
+                                        onSuccess = { isLoading = false },
+                                        onError = { isLoading = false; errorMsg = it })
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().height(50.dp),
+                        enabled = !isLoading,
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        if (isLoading) CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                        else Text("Daftar", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    TextButton(onClick = onGoLogin, modifier = Modifier.fillMaxWidth()) {
+                        Text("Sudah punya akun? Masuk", fontSize = 13.sp, color = Color(0xFF1565C0))
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ===================== PROFILE SCREEN =====================
+
+@Composable
+fun ProfileScreen(viewModel: ScholarSpaceViewModel) {
+    val user by viewModel.currentUser.collectAsStateWithLifecycle()
+    val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
+    val savedScholarships by viewModel.savedScholarships.collectAsStateWithLifecycle()
+    val savedCourses by viewModel.savedCourses.collectAsStateWithLifecycle()
+    val scholarships by viewModel.scholarships.collectAsStateWithLifecycle()
+    var isEditing by remember { mutableStateOf(false) }
+    var editName by remember { mutableStateOf("") }
+    var editUniversity by remember { mutableStateOf("") }
+    var editMajor by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
+    ) {
+        // Header gradient
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)))
+                .padding(horizontal = 24.dp, vertical = 24.dp)
+        ) {
+            Column {
+                Text("Profil Saya", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                Text("Informasi akun dan statistik penggunaan", fontSize = 11.sp, color = Color.White.copy(0.75f))
+            }
+        }
+
+        // Avatar + Info Card
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
+            shape = RoundedCornerShape(20.dp),
+            elevation = CardDefaults.cardElevation(4.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+                    .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)),
+                        RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                    .padding(20.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier.size(72.dp)
+                            .background(Color.White.copy(0.2f), CircleShape)
+                            .border(2.dp, Color.White.copy(0.5f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = user?.fullName?.take(2)?.uppercase() ?: "?",
+                            fontWeight = FontWeight.Black, fontSize = 24.sp, color = Color.White
+                        )
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(user?.fullName ?: "-", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                        Text("@${user?.username ?: "-"}", fontSize = 13.sp, color = Color.White.copy(0.85f))
+                        Text(user?.email ?: "-", fontSize = 12.sp, color = Color.White.copy(0.7f))
+                    }
+                }
+            }
+            Column(modifier = Modifier.padding(20.dp)) {
+                if (!isEditing) {
+                    ProfileInfoRow(Icons.Default.School, "Universitas", user?.university?.ifBlank { "-" } ?: "-")
+                    ProfileInfoRow(Icons.Default.MenuBook, "Jurusan", user?.major?.ifBlank { "-" } ?: "-")
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedButton(onClick = {
+                        editName = user?.fullName ?: ""
+                        editUniversity = user?.university ?: ""
+                        editMajor = user?.major ?: ""
+                        isEditing = true
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Edit, null, Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Edit Profil")
+                    }
+                } else {
+                    OutlinedTextField(editName, { editName = it }, label = { Text("Nama Lengkap") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(editUniversity, { editUniversity = it }, label = { Text("Universitas") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(editMajor, { editMajor = it }, label = { Text("Jurusan") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    Spacer(Modifier.height(12.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { isEditing = false }, modifier = Modifier.weight(1f)) { Text("Batal") }
+                        Button(onClick = { viewModel.updateProfile(editName, editUniversity, editMajor); isEditing = false }, modifier = Modifier.weight(1f)) { Text("Simpan") }
+                    }
+                }
+            }
+        }
+
+        // Stats Card
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(2.dp)
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text("Statistik Penggunaan", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Spacer(Modifier.height(12.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    StatItem(count = savedScholarships.size.toString(), label = "Beasiswa\nDisimpan", color = MaterialTheme.colorScheme.primary)
+                    StatItem(count = savedCourses.size.toString(), label = "Kursus\nDisimpan", color = MaterialTheme.colorScheme.secondary)
+                    StatItem(count = scholarships.size.toString(), label = "Total\nBeasiswa", color = Color(0xFF388E3C))
+                }
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Storage, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Column {
+                        Text("Cache Database SQLite", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                        Text("${savedScholarships.size + savedCourses.size} item tersimpan lokal", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(0.6f))
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Settings Card
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(2.dp)
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text("Pengaturan", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(if (isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode, null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text("Mode Gelap", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Text(if (isDarkMode) "Aktif" else "Nonaktif", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(0.6f))
+                        }
+                    }
+                    Switch(checked = isDarkMode, onCheckedChange = { viewModel.toggleDarkMode() })
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Logout Button
+        Button(
+            onClick = { viewModel.logout() },
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Icon(Icons.Default.Logout, null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Keluar / Logout", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        }
+        Spacer(Modifier.height(32.dp))
+    }
+}
+
+@Composable
+fun ProfileInfoRow(icon: ImageVector, label: String, value: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
+        Column {
+            Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(0.5f), fontWeight = FontWeight.Medium)
+            Text(value, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
+@Composable
+fun StatItem(count: String, label: String, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(count, fontSize = 28.sp, fontWeight = FontWeight.Black, color = color)
+        Text(label, fontSize = 11.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface.copy(0.6f))
     }
 }

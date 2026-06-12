@@ -3,12 +3,31 @@
 import com.ryan.scholarspace.data.database.ScholarSpaceDao
 import com.ryan.scholarspace.data.database.SavedCourseEntity
 import com.ryan.scholarspace.data.database.SavedScholarshipEntity
+import com.ryan.scholarspace.data.database.UserEntity
 import com.ryan.scholarspace.data.model.Course
 import com.ryan.scholarspace.data.model.Scholarship
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.Calendar
 
 class ScholarSpaceRepository(private val dao: ScholarSpaceDao) {
+
+    private fun isDeadlinePassed(deadline: String): Boolean {
+        return try {
+            val parts = deadline.trim().split(" ")
+            if (parts.size != 3) return false
+            val day = parts[0].toInt()
+            val month = when (parts[1].lowercase()) {
+                "januari" -> 1; "februari" -> 2; "maret" -> 3; "april" -> 4
+                "mei" -> 5; "juni" -> 6; "juli" -> 7; "agustus" -> 8
+                "september" -> 9; "oktober" -> 10; "november" -> 11; "desember" -> 12
+                else -> return false
+            }
+            val year = parts[2].toInt()
+            val deadlineCal = Calendar.getInstance().apply { set(year, month - 1, day, 23, 59, 59) }
+            deadlineCal.time.before(Calendar.getInstance().time)
+        } catch (e: Exception) { false }
+    }
 
     // --- Preloaded Data Lists ---
     val preloadedScholarships = listOf(
@@ -185,7 +204,8 @@ class ScholarSpaceRepository(private val dao: ScholarSpaceDao) {
         val enrichedPreloaded = preloadedScholarships.map { pre ->
             val savedEntity = savedMap[pre.id]
             pre.copy(
-                isFavorite = savedEntity != null
+                isFavorite = savedEntity != null,
+                status = if (isDeadlinePassed(pre.deadline)) "Tutup" else pre.status
             )
         }
 
@@ -240,4 +260,11 @@ class ScholarSpaceRepository(private val dao: ScholarSpaceDao) {
     suspend fun removeCourse(id: String) {
         dao.deleteCourseById(id)
     }
+
+    // --- User DB Operations ---
+    suspend fun registerUser(user: UserEntity) = dao.insertUser(user)
+    suspend fun updateUser(user: UserEntity) = dao.updateUser(user)
+    suspend fun getUserByEmail(email: String) = dao.getUserByEmail(email)
+    suspend fun getUserById(id: String) = dao.getUserById(id)
+    suspend fun isEmailRegistered(email: String) = dao.countUserByEmail(email) > 0
 }

@@ -3,6 +3,18 @@
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+@Entity(tableName = "users")
+data class UserEntity(
+    @PrimaryKey val id: String,
+    val fullName: String,
+    val email: String,
+    val username: String,
+    val password: String,
+    val university: String = "",
+    val major: String = "",
+    val createdAt: Long = System.currentTimeMillis()
+)
+
 @Entity(tableName = "saved_scholarships")
 data class SavedScholarshipEntity(
     @PrimaryKey val id: String,

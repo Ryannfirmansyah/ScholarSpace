@@ -8,9 +8,10 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [
         SavedScholarshipEntity::class,
-        SavedCourseEntity::class
+        SavedCourseEntity::class,
+        UserEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class ScholarSpaceDatabase : RoomDatabase() {
