@@ -18,6 +18,7 @@ import com.ryan.scholarspace.data.repository.ScholarSpaceRepository
 import kotlinx.coroutines.flow.*
 import com.ryan.scholarspace.data.database.UserEntity
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.UUID
 import java.util.concurrent.Executors
 
@@ -305,14 +306,21 @@ class ScholarSpaceViewModel(application: Application) : AndroidViewModel(applica
 
     fun updateProfilePhoto(uri: Uri) {
         val userId = currentUser.value?.id ?: return
+        val context = getApplication<Application>()
+        val internalFile = File(context.filesDir, "profile_photo_$userId.jpg")
         try {
-            getApplication<Application>().contentResolver.takePersistableUriPermission(
-                uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
-        } catch (e: Exception) { /* beberapa URI tidak mendukung persistable permission */ }
-        val uriString = uri.toString()
-        prefs.edit().putString("profile_photo_$userId", uriString).apply()
-        profilePhotoUri.value = uriString
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                internalFile.outputStream().use { output -> input.copyTo(output) }
+            }
+            // Append timestamp so Coil always reloads the new image
+            val value = internalFile.absolutePath + "?v=" + System.currentTimeMillis()
+            prefs.edit().putString("profile_photo_$userId", value).apply()
+            profilePhotoUri.value = value
+        } catch (e: Exception) {
+            val uriString = uri.toString()
+            prefs.edit().putString("profile_photo_$userId", uriString).apply()
+            profilePhotoUri.value = uriString
+        }
     }
 
     fun logout() {

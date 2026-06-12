@@ -47,6 +47,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import java.io.File
 import com.ryan.scholarspace.data.database.UserEntity
 import com.ryan.scholarspace.data.model.Course
 import com.ryan.scholarspace.data.model.Scholarship
@@ -311,86 +313,104 @@ fun DashboardScreen(viewModel: ScholarSpaceViewModel) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Hero Header
+        // Hero Header — search bar terintegrasi di dalam gradient
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.secondary
-                        )
+                .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)))
+                .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 16.dp)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        val firstName = currentUser?.fullName?.trim()?.split(" ")?.firstOrNull()
+                        if (firstName != null) {
+                            Text("Halo, $firstName", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color.White.copy(0.82f))
+                            Spacer(modifier = Modifier.height(2.dp))
+                        }
+                        Text("ScholarSpace", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = Color.White, letterSpacing = (-0.5).sp)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("Temukan beasiswa & kursus terbaik.", fontSize = 12.sp, color = Color.White.copy(0.72f))
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(0.18f))
+                            .border(2.dp, Color.White.copy(0.4f), CircleShape)
+                            .clickable { viewModel.currentScreen.value = AppScreen.PROFILE },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val photoUri = profilePhotoUri
+                        if (photoUri != null) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(if (photoUri.startsWith("/")) File(photoUri.substringBefore("?v=")) else Uri.parse(photoUri))
+                                    .memoryCacheKey(photoUri)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Foto Profil",
+                                modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Text(
+                                text = currentUser?.fullName?.trim()?.split(" ")
+                                    ?.take(2)?.joinToString("") { it.take(1).uppercase() } ?: "?",
+                                fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.White
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(14.dp))
+                TextField(
+                    value = query,
+                    onValueChange = { viewModel.searchQuery.value = it },
+                    modifier = Modifier.fillMaxWidth().testTag("dashboard_search_input"),
+                    placeholder = { Text("Cari beasiswa, kursus, platform...", fontSize = 14.sp, color = Color.White.copy(0.6f)) },
+                    leadingIcon = { Icon(Icons.Default.Search, null, tint = Color.White.copy(0.75f), modifier = Modifier.size(20.dp)) },
+                    trailingIcon = {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.searchQuery.value = "" }) {
+                                Icon(Icons.Default.Clear, null, tint = Color.White.copy(0.75f), modifier = Modifier.size(18.dp))
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(14.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.White.copy(0.22f),
+                        unfocusedContainerColor = Color.White.copy(0.17f),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = Color.White,
+                        focusedPlaceholderColor = Color.White.copy(0.6f),
+                        unfocusedPlaceholderColor = Color.White.copy(0.6f),
+                        focusedLeadingIconColor = Color.White.copy(0.75f),
+                        unfocusedLeadingIconColor = Color.White.copy(0.75f),
+                        focusedTrailingIconColor = Color.White.copy(0.75f),
+                        unfocusedTrailingIconColor = Color.White.copy(0.75f)
                     )
                 )
-                .padding(start = 24.dp, end = 20.dp, top = 20.dp, bottom = 20.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    val firstName = currentUser?.fullName?.trim()?.split(" ")?.firstOrNull()
-                    if (firstName != null) {
-                        Text(
-                            text = "Halo, $firstName",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White.copy(alpha = 0.82f)
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                    }
-                    Text(
-                        text = "ScholarSpace",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White,
-                        letterSpacing = (-0.3).sp
-                    )
-                    Spacer(modifier = Modifier.height(3.dp))
-                    Text(
-                        text = "Temukan beasiswa & kursus terbaik.",
-                        fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.18f))
-                        .border(1.5.dp, Color.White.copy(alpha = 0.4f), CircleShape)
-                        .clickable { viewModel.currentScreen.value = AppScreen.PROFILE },
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (profilePhotoUri != null) {
-                        AsyncImage(
-                            model = Uri.parse(profilePhotoUri),
-                            contentDescription = "Foto Profil",
-                            modifier = Modifier.fillMaxSize().clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Text(
-                            text = currentUser?.fullName?.trim()?.split(" ")
-                                ?.take(2)?.joinToString("") { it.take(1).uppercase() }
-                                ?: "?",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = Color.White
-                        )
-                    }
-                }
             }
         }
 
-        // Live Search Bar
-        HorizontalSearchSection(
-            query = query,
-            onQueryChange = { viewModel.searchQuery.value = it }
-        )
+        // Quick Stats Row
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            QuickStatChip("${scholarships.size}", "Beasiswa", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+            QuickStatChip("${courses.size}", "Kursus", Color(0xFF7B1FA2), Modifier.weight(1f))
+            QuickStatChip("${scholarships.count { it.status == "Buka" }}", "Terbuka", ColorOpen, Modifier.weight(1f))
+        }
 
         // Type Segment Tab Switcher (Beasiswa / Kursus)
         Row(
@@ -1245,6 +1265,51 @@ fun SettingsScreen(viewModel: ScholarSpaceViewModel) {
     }
 }
 
+// --- Helper functions for category/platform colors ---
+
+fun scholarshipCategoryColor(category: String): Color = when (category.lowercase()) {
+    "pemerintah" -> Color(0xFF1565C0)
+    "luar negeri" -> Color(0xFF7B1FA2)
+    "dalam negeri" -> Color(0xFF2E7D32)
+    "swasta" -> Color(0xFFE64A19)
+    else -> Color(0xFF546E7A)
+}
+
+fun scholarshipCategoryIcon(category: String): ImageVector = when (category.lowercase()) {
+    "pemerintah" -> Icons.Default.AccountBalance
+    "luar negeri" -> Icons.Default.Flight
+    "dalam negeri" -> Icons.Default.HomeWork
+    "swasta" -> Icons.Default.Business
+    else -> Icons.Default.School
+}
+
+fun coursePlatformColor(platform: String): Color = when (platform.lowercase()) {
+    "dicoding" -> Color(0xFF00897B)
+    "udemy" -> Color(0xFF7C3AED)
+    "coursera" -> Color(0xFF1D4ED8)
+    else -> Color(0xFF546E7A)
+}
+
+// --- Quick Stat Chip ---
+
+@Composable
+fun QuickStatChip(count: String, label: String, color: Color, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
+        elevation = CardDefaults.cardElevation(0.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp, horizontal = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(count, fontSize = 22.sp, fontWeight = FontWeight.Black, color = color)
+            Text(label, fontSize = 10.sp, color = color.copy(0.85f), fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
 // --- Card Item Lists Layouts ---
 
 @Composable
@@ -1253,53 +1318,72 @@ fun ScholarshipListItemCard(
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit
 ) {
+    val catColor = scholarshipCategoryColor(scholarship.category)
+    val catIcon = scholarshipCategoryIcon(scholarship.category)
+    val statusColor = if (scholarship.status == "Buka") ColorOpen else ColorClosed
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
+        Column {
+            // Colored category header strip
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(catColor.copy(0.12f), RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .padding(horizontal = 14.dp, vertical = 9.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        Box(
+                            modifier = Modifier.size(26.dp).background(catColor, CircleShape),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = scholarship.category,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                            )
+                            Icon(catIcon, null, tint = Color.White, modifier = Modifier.size(14.dp))
                         }
+                        Spacer(Modifier.width(8.dp))
+                        Text(scholarship.category, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = catColor)
                         if (scholarship.isCustom) {
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(Modifier.width(6.dp))
                             Surface(
-                                shape = RoundedCornerShape(6.dp),
+                                shape = RoundedCornerShape(4.dp),
                                 color = MaterialTheme.colorScheme.secondaryContainer,
                                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                             ) {
-                                Text(
-                                    text = "Buatan Anda",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                                )
+                                Text("Buatan Anda", fontSize = 9.sp, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                             }
                         }
                     }
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = statusColor.copy(0.15f),
+                        contentColor = statusColor
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(Modifier.size(5.dp).background(statusColor, CircleShape))
+                            Spacer(Modifier.width(4.dp))
+                            Text(scholarship.status, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+            }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
+            // Main content
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, top = 12.dp, bottom = 14.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = scholarship.title,
                         fontSize = 15.sp,
@@ -1309,72 +1393,21 @@ fun ScholarshipListItemCard(
                         overflow = TextOverflow.Ellipsis,
                         lineHeight = 21.sp
                     )
-                    Text(
-                        text = scholarship.provider,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-
-                IconButton(
-                    onClick = onToggleFavorite,
-                    modifier = Modifier.testTag("fav_schol_${scholarship.id}")
-                ) {
-                    Icon(
-                        imageVector = if (scholarship.isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                        contentDescription = "Simpan",
-                        tint = if (scholarship.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.CalendarToday,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = scholarship.deadline,
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
-                    )
-                }
-
-                val statusColor = if (scholarship.status == "Buka") ColorOpen else ColorClosed
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = statusColor.copy(alpha = 0.12f),
-                    contentColor = statusColor
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(5.dp)
-                                .background(statusColor, CircleShape)
-                        )
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Text(
-                            text = scholarship.status,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                    Spacer(Modifier.height(3.dp))
+                    Text(scholarship.provider, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(0.55f))
+                    Spacer(Modifier.height(10.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.CalendarToday, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.4f), modifier = Modifier.size(11.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(scholarship.deadline, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurface.copy(0.55f))
                     }
+                }
+                IconButton(onClick = onToggleFavorite, modifier = Modifier.testTag("fav_schol_${scholarship.id}")) {
+                    Icon(
+                        if (scholarship.isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                        "Simpan",
+                        tint = if (scholarship.isFavorite) catColor else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
@@ -1387,55 +1420,65 @@ fun CourseListItemCard(
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit
 ) {
+    val platformColor = coursePlatformColor(course.platform)
+    val isFree = course.price.lowercase() == "gratis" || course.price.lowercase().contains("audit")
+    val priceColor = if (isFree) ColorOpen else MaterialTheme.colorScheme.primary
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
+        Column {
+            // Colored platform header strip
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(platformColor.copy(0.12f), RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .padding(horizontal = 14.dp, vertical = 9.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        Box(
+                            modifier = Modifier.size(26.dp).background(platformColor, CircleShape),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = course.platform,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                            )
+                            Icon(Icons.Default.PlayCircle, null, tint = Color.White, modifier = Modifier.size(14.dp))
                         }
-
-                        Spacer(modifier = Modifier.width(6.dp))
-
+                        Spacer(Modifier.width(8.dp))
+                        Text(course.platform, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = platformColor)
+                        Spacer(Modifier.width(8.dp))
                         Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            shape = RoundedCornerShape(4.dp),
+                            color = platformColor.copy(0.15f),
+                            contentColor = platformColor
                         ) {
-                            Text(
-                                text = course.category,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                            )
+                            Text(course.category, fontSize = 9.sp, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                         }
                     }
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = priceColor.copy(0.15f),
+                        contentColor = priceColor
+                    ) {
+                        Text(course.price, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
+                    }
+                }
+            }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
+            // Main content
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, top = 12.dp, bottom = 14.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = course.title,
+                        course.title,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -1443,63 +1486,25 @@ fun CourseListItemCard(
                         overflow = TextOverflow.Ellipsis,
                         lineHeight = 21.sp
                     )
-                    Text(
-                        text = course.instructor,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
+                    Spacer(Modifier.height(3.dp))
+                    Text(course.instructor, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface.copy(0.55f))
+                    Spacer(Modifier.height(10.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        repeat(5) { i ->
+                            Icon(
+                                if (i < course.rating.toInt()) Icons.Default.Star else Icons.Default.StarOutline,
+                                null, tint = GoldStar, modifier = Modifier.size(13.dp)
+                            )
+                        }
+                        Spacer(Modifier.width(4.dp))
+                        Text("${course.rating}", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface.copy(0.65f))
+                    }
                 }
-
-                IconButton(
-                    onClick = onToggleFavorite,
-                    modifier = Modifier.testTag("fav_course_${course.id}")
-                ) {
+                IconButton(onClick = onToggleFavorite, modifier = Modifier.testTag("fav_course_${course.id}")) {
                     Icon(
-                        imageVector = if (course.isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                        contentDescription = "Simpan",
-                        tint = if (course.isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Star,
-                        contentDescription = null,
-                        tint = GoldStar,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${course.rating}",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                val isFree = course.price.lowercase() == "gratis" || course.price.lowercase().contains("audit")
-                val badgeColor = if (isFree) ColorOpen else MaterialTheme.colorScheme.primary
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = badgeColor.copy(alpha = 0.12f),
-                    contentColor = badgeColor
-                ) {
-                    Text(
-                        text = course.price,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        if (course.isFavorite) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                        "Simpan",
+                        tint = if (course.isFavorite) platformColor else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -2463,9 +2468,14 @@ fun ProfileScreen(viewModel: ScholarSpaceViewModel) {
                                 .clickable { photoPickerLauncher.launch("image/*") },
                             contentAlignment = Alignment.Center
                         ) {
-                            if (profilePhotoUri != null) {
+                            val photoUri = profilePhotoUri
+                            if (photoUri != null) {
                                 AsyncImage(
-                                    model = Uri.parse(profilePhotoUri),
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(if (photoUri.startsWith("/")) File(photoUri.substringBefore("?v=")) else Uri.parse(photoUri))
+                                        .memoryCacheKey(photoUri)
+                                        .crossfade(true)
+                                        .build(),
                                     contentDescription = "Foto Profil",
                                     modifier = Modifier.fillMaxSize().clip(CircleShape),
                                     contentScale = ContentScale.Crop
