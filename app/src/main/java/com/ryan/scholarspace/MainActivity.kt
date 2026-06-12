@@ -6,8 +6,10 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -41,8 +43,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.ryan.scholarspace.data.database.UserEntity
 import com.ryan.scholarspace.data.model.Course
 import com.ryan.scholarspace.data.model.Scholarship
@@ -294,6 +298,8 @@ fun DashboardScreen(viewModel: ScholarSpaceViewModel) {
     val query by viewModel.searchQuery.collectAsStateWithLifecycle()
     val activeScholCategory by viewModel.selectedScholarshipCategory.collectAsStateWithLifecycle()
     val activeCourseCategory by viewModel.selectedCourseCategory.collectAsStateWithLifecycle()
+    val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
+    val profilePhotoUri by viewModel.profilePhotoUri.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
@@ -349,16 +355,29 @@ fun DashboardScreen(viewModel: ScholarSpaceViewModel) {
                 Box(
                     modifier = Modifier
                         .size(46.dp)
-                        .background(Color.White.copy(alpha = 0.2f), CircleShape)
-                        .border(1.5.dp, Color.White.copy(alpha = 0.5f), CircleShape),
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.2f))
+                        .border(1.5.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+                        .clickable { viewModel.currentScreen.value = AppScreen.PROFILE },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "RF",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 15.sp,
-                        color = Color.White
-                    )
+                    if (profilePhotoUri != null) {
+                        AsyncImage(
+                            model = Uri.parse(profilePhotoUri),
+                            contentDescription = "Foto Profil",
+                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Text(
+                            text = currentUser?.fullName?.trim()?.split(" ")
+                                ?.take(2)?.joinToString("") { it.take(1).uppercase() }
+                                ?: "?",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 15.sp,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
@@ -2376,10 +2395,17 @@ fun ProfileScreen(viewModel: ScholarSpaceViewModel) {
     val savedScholarships by viewModel.savedScholarships.collectAsStateWithLifecycle()
     val savedCourses by viewModel.savedCourses.collectAsStateWithLifecycle()
     val scholarships by viewModel.scholarships.collectAsStateWithLifecycle()
+    val profilePhotoUri by viewModel.profilePhotoUri.collectAsStateWithLifecycle()
     var isEditing by remember { mutableStateOf(false) }
     var editName by remember { mutableStateOf("") }
     var editUniversity by remember { mutableStateOf("") }
     var editMajor by remember { mutableStateOf("") }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.updateProfilePhoto(it) }
+    }
 
     Column(
         modifier = Modifier
@@ -2413,16 +2439,49 @@ fun ProfileScreen(viewModel: ScholarSpaceViewModel) {
                     .padding(20.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier.size(72.dp)
-                            .background(Color.White.copy(0.2f), CircleShape)
-                            .border(2.dp, Color.White.copy(0.5f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = user?.fullName?.take(2)?.uppercase() ?: "?",
-                            fontWeight = FontWeight.Black, fontSize = 24.sp, color = Color.White
-                        )
+                    Box(modifier = Modifier.size(80.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(0.2f))
+                                .border(2.dp, Color.White.copy(0.5f), CircleShape)
+                                .clickable { photoPickerLauncher.launch("image/*") },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (profilePhotoUri != null) {
+                                AsyncImage(
+                                    model = Uri.parse(profilePhotoUri),
+                                    contentDescription = "Foto Profil",
+                                    modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Text(
+                                    text = user?.fullName?.trim()?.split(" ")
+                                        ?.take(2)?.joinToString("") { it.take(1).uppercase() }
+                                        ?: "?",
+                                    fontWeight = FontWeight.Black, fontSize = 26.sp, color = Color.White
+                                )
+                            }
+                        }
+                        // Camera badge
+                        Box(
+                            modifier = Modifier
+                                .size(26.dp)
+                                .align(Alignment.BottomEnd)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .border(2.dp, Color.White, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.CameraAlt,
+                                contentDescription = "Ganti Foto",
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
                     }
                     Spacer(Modifier.width(16.dp))
                     Column {

@@ -2,6 +2,8 @@
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.ryan.scholarspace.data.database.ScholarSpaceDatabase
@@ -69,6 +71,7 @@ class ScholarSpaceViewModel(application: Application) : AndroidViewModel(applica
     // --- Auth State ---
     val currentUser = MutableStateFlow<UserEntity?>(null)
     val isLoggedIn = MutableStateFlow(false)
+    val profilePhotoUri = MutableStateFlow<String?>(null)
 
     // --- News State (Retrofit API) ---
     val newsState = MutableStateFlow<NewsState>(NewsState.Loading)
@@ -117,7 +120,11 @@ class ScholarSpaceViewModel(application: Application) : AndroidViewModel(applica
         if (savedUserId != null) {
             viewModelScope.launch {
                 val user = repository.getUserById(savedUserId)
-                if (user != null) { currentUser.value = user; isLoggedIn.value = true }
+                if (user != null) {
+                    currentUser.value = user
+                    isLoggedIn.value = true
+                    profilePhotoUri.value = prefs.getString("profile_photo_${user.id}", null)
+                }
             }
         }
         fetchNews()
@@ -259,6 +266,7 @@ class ScholarSpaceViewModel(application: Application) : AndroidViewModel(applica
                 else -> {
                     currentUser.value = user
                     isLoggedIn.value = true
+                    profilePhotoUri.value = prefs.getString("profile_photo_${user.id}", null)
                     prefs.edit().putString("logged_in_user_id", user.id).apply()
                     onSuccess()
                 }
@@ -295,9 +303,22 @@ class ScholarSpaceViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    fun updateProfilePhoto(uri: Uri) {
+        val userId = currentUser.value?.id ?: return
+        try {
+            getApplication<Application>().contentResolver.takePersistableUriPermission(
+                uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } catch (e: Exception) { /* beberapa URI tidak mendukung persistable permission */ }
+        val uriString = uri.toString()
+        prefs.edit().putString("profile_photo_$userId", uriString).apply()
+        profilePhotoUri.value = uriString
+    }
+
     fun logout() {
         currentUser.value = null
         isLoggedIn.value = false
+        profilePhotoUri.value = null
         prefs.edit().remove("logged_in_user_id").apply()
         currentScreen.value = AppScreen.DASHBOARD
     }
